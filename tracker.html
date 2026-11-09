@@ -184,7 +184,9 @@ function locTime(t){var d=new Date(t);return pad2(d.getHours())+':'+pad2(d.getMi
 function all(){var r=[];Object.keys(packs).forEach(function(k){r=r.concat(packs[k].records||[]);});return r;}
 function ofType(t){return t==='span'?spans():all().filter(function(r){return r.type===t;});}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
-function poleIndex(){var i={};all().filter(function(r){return r.type==='pole';}).forEach(function(p){i[p.props['Pole_Numbe']]=p;});return i;}
+/* a span can start at the transformer: index transformers by name, poles override */
+function poleIndex(){var i={};all().filter(function(r){return r.type==='trf';}).forEach(function(t){var n=(t.props['TRF_Name']||'').trim();if(n)i[n]=t;});
+  all().filter(function(r){return r.type==='pole';}).forEach(function(p){i[p.props['Pole_Numbe']]=p;});return i;}
 function spans(){
   var idx=poleIndex(), out=[];
   all().filter(function(r){return r.type==='pole';}).forEach(function(p){
@@ -355,7 +357,7 @@ function summary(){
   // 5-10 extras
   h+=row('5','Earthing','pcs',P.filter(function(p){return p.props['Earthing']==='1';}).length);
   h+=row('6','overhead stay','pcs',P.filter(function(p){return p.props['Flaying_st']==='1';}).length);
-  h+=row('7','Stay','pcs',P.filter(function(p){return p.props['STAY_ASSEM']==='1';}).length);
+  h+=row('7','Stay','pcs',P.reduce(function(a,p){return a+(parseInt(p.props['STAY_ASSEM'],10)||0);},0));
   h+=row('8','single Phase','pcs',C.filter(function(c){return c.props['Meter Type']==='SINGLE PHASE';}).length);
   h+=row('9','Three Phase','pcs',C.filter(function(c){return c.props['Meter Type']==='THREE PHASE';}).length);
   h+=row('10','ReadyBord','pcs',C.filter(function(c){return c.props['READYBOARD']==='1';}).length);
@@ -584,7 +586,7 @@ function summaryRows(){
   rows.push(['','Total number of poles','pcs',P.length]);
   rows.push(['5','Earthing','pcs',P.filter(function(p){return p.props['Earthing']==='1';}).length]);
   rows.push(['6','overhead stay','pcs',P.filter(function(p){return p.props['Flaying_st']==='1';}).length]);
-  rows.push(['7','Stay','pcs',P.filter(function(p){return p.props['STAY_ASSEM']==='1';}).length]);
+  rows.push(['7','Stay','pcs',P.reduce(function(a,p){return a+(parseInt(p.props['STAY_ASSEM'],10)||0);},0)]);
   rows.push(['8','single Phase','pcs',C.filter(function(c){return c.props['Meter Type']==='SINGLE PHASE';}).length]);
   rows.push(['9','Three Phase','pcs',C.filter(function(c){return c.props['Meter Type']==='THREE PHASE';}).length]);
   rows.push(['10','ReadyBord','pcs',C.filter(function(c){return c.props['READYBOARD']==='1';}).length]);

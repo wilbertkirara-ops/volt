@@ -38,10 +38,10 @@
   .pill{margin-left:auto;font-size:12px;color:#fff;background:rgba(255,255,255,.12);padding:6px 11px;border-radius:999px;font-weight:600;
     border:1px solid rgba(255,255,255,.18)}
   nav{display:flex;background:var(--ink);max-width:820px;margin:0 auto;padding:0 10px 10px;gap:4px;overflow-x:auto}
-  nav button{flex:1;min-width:66px;background:transparent;border:0;color:#9DB4BC;font-size:13px;
-    font-weight:600;padding:9px 8px;border-radius:9px;cursor:pointer;white-space:nowrap;font-family:var(--sans)}
+  nav button{flex:1 1 0;min-width:0;background:transparent;border:0;color:#9DB4BC;font-size:12.5px;
+    font-weight:600;padding:8px 2px;border-radius:9px;cursor:pointer;white-space:nowrap;font-family:var(--sans)}
   nav button[aria-selected="true"]{background:rgba(255,255,255,.14);color:#fff}
-  nav button b{display:block;font-size:13px;font-weight:700;color:var(--copper)}
+  nav button b{display:block;width:max-content;margin:1px auto 0;padding:0 6px;border-radius:999px;font-size:12px;font-weight:700;color:var(--copper)}
   nav button[aria-selected="true"] b{color:#fff}
   h2{font-size:15px;color:var(--ink);margin:20px 2px 9px;font-weight:700;letter-spacing:-.01em}
   .card{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
@@ -65,13 +65,46 @@
   .acc.ok{background:var(--copper)}
   .acc.bad{background:var(--live)}
   .acc.none{background:#51666C}
-  .chips{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0}
-  .chip{border:1.5px solid var(--rule);background:#fff;border-radius:14px;padding:14px 6px 12px;font-size:14px;font-weight:700;
-    cursor:pointer;color:var(--ink);text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px;transition:transform .08s,border-color .15s}
-  .chip svg{width:26px;height:26px;stroke:var(--c,var(--steel));stroke-width:1.8;fill:none}
-  .chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chips{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:4px 0 12px;position:relative}
+  .chips::before{content:"";position:absolute;left:12%;right:12%;top:31px;height:2px;background:var(--rule);z-index:0}
+  .chip{position:relative;z-index:1;border:1.5px solid var(--rule);background:#fff;border-radius:16px;padding:10px 4px 10px;font-family:var(--sans);
+    cursor:pointer;color:var(--ink);text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .08s,background .15s,border-color .15s}
+  .chip .step{position:absolute;top:7px;left:9px;font:700 11px var(--mono);color:var(--steel)}
+  .chip .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#F1F4F3;background:color-mix(in srgb,var(--c) 11%,#fff)}
+  .chip svg{width:24px;height:24px;stroke:var(--c);stroke-width:1.9;fill:none}
+  .chip .cl{font-size:14px;font-weight:800;letter-spacing:-.01em;margin-top:3px}
+  .chip .cn{font:600 11px var(--mono);color:var(--steel)}
+  .chip[aria-pressed="true"]{background:var(--c);color:#fff;border-color:var(--c);box-shadow:0 6px 18px -6px var(--c)}
+  .chip[aria-pressed="true"] .ic{background:rgba(255,255,255,.16)}
   .chip[aria-pressed="true"] svg{stroke:#fff}
+  .chip[aria-pressed="true"] .step,.chip[aria-pressed="true"] .cn{color:rgba(255,255,255,.78)}
   .chip:active{transform:scale(.97)}
+  .fsec{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:800;color:var(--steel);margin:20px 0 10px}
+  .fsec::after{content:"";flex:1;height:1px;background:var(--rule)}
+  #form>.fsec:first-child{margin-top:4px}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;column-gap:10px}
+  .fgrid>.field{grid-column:1/-1;min-width:0}
+  .fgrid>.field.half{grid-column:auto}
+  .fgrid>.field.half{display:flex;flex-direction:column}
+  .fgrid>.field.half>label{flex:1 0 auto}
+  .fgrid>.field.half label em{display:block}
+  .opts.seg{display:flex;gap:0;border:1.5px solid var(--rule);border-radius:10px;overflow:hidden;background:#fff}
+  .opts.seg .opt{flex:1;border:0;border-radius:0;border-left:1.5px solid var(--rule);text-align:center;min-height:48px;padding:10px 6px}
+  .opts.seg .opt:first-child{border-left:0}
+  .opts.seg .opt[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .formcard{border-top:4px solid var(--fc,var(--ink))}
+  details.sub>summary{cursor:pointer;font-weight:700;font-size:13px;padding:8px 2px;list-style:none;color:var(--ink)}
+  details.sub>summary::-webkit-details-marker{display:none}
+  details.sub>summary::before{content:"\25B8  ";color:var(--steel)}
+  details.sub[open]>summary::before{content:"\25BE  "}
+  .exgrid{display:grid;gap:8px}
+  .exbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;border:1.5px solid var(--rule);border-radius:12px;background:#fff;
+    font-family:var(--sans);color:var(--ink);cursor:pointer}
+  .exbtn b{display:block;font-size:15px}
+  .exbtn small{display:block;font-size:12px;color:var(--steel);margin-top:1px}
+  .exbtn .ex-ic{flex:0 0 40px;height:40px;border-radius:11px;display:grid;place-items:center;font:800 11px var(--mono);color:#fff}
+  .exbtn.main{border-color:var(--ink);box-shadow:var(--shadow)}
+  .exbtn:active{transform:scale(.99)}
   .opts{display:flex;flex-wrap:wrap;gap:6px}
   .opts.yn .opt{flex:1}
   .opt{border:1.5px solid var(--rule);background:#fff;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:600;
@@ -865,14 +898,16 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span><b style="color:var(--signal)">●</b> you</span>
         <span id="maplbl" class="note" style="margin:0"></span>
       </div>
-      <p class="note" style="margin:4px 2px 0">On satellite, tap a point to edit it, or drag it to the correct position if the GPS was off.</p>
-      <div class="btn-row" style="margin-top:8px">
-        <button class="act ghost" id="btn_dlmap" style="padding:9px">⬇ Save map offline</button>
-        <button class="act ghost" id="btn_clrmap" style="padding:9px">Clear offline map</button>
-      </div>
+      <p class="note" style="margin:4px 2px 0">On satellite, tap a point to edit it, or drag it where it belongs if the GPS was off.</p>
       <p class="note" id="dlbar" style="margin:6px 2px 0;display:none;color:var(--blue);font-weight:700"></p>
-      <p class="note" id="tilestat" style="margin:4px 2px 0"></p>
-      <p class="note" style="margin:4px 2px 0">Save the map before going to the field, with Wi-Fi or mobile data, so the satellite view still works with no signal. It saves only your work area.</p>
+      <details class="sub" style="margin-top:4px">
+        <summary>Offline map <span id="tilestat" class="note" style="font-weight:400"></span></summary>
+        <div class="btn-row" style="margin-top:4px">
+          <button class="act ghost" id="btn_dlmap" style="padding:9px">⬇ Save map offline</button>
+          <button class="act ghost" id="btn_clrmap" style="padding:9px">Clear offline map</button>
+        </div>
+        <p class="note" style="margin:6px 2px 0">Save it before going to the field, with Wi-Fi or mobile data, so the satellite view still works with no signal. It saves only your work area.</p>
+      </details>
     </div>
 
     <!-- SETUP (collapses once a transformer is set) -->
@@ -893,6 +928,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
       </div>
     </details>
 
+    <!-- WHAT TO RECORD: transformer, then poles, then customers -->
+    <div class="chips" id="chips"></div>
+
     <!-- GPS strip -->
     <div class="card" style="padding:10px">
       <div style="display:flex;align-items:center;gap:10px">
@@ -907,11 +945,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div id="gpsdiag" class="note" style="margin-top:8px"></div>
     </div>
 
-    <!-- BIG TYPE BUTTONS -->
-    <div class="chips" id="chips"></div>
 
     <!-- FORM: everything in one sequence -->
-    <div class="card">
+    <div class="card formcard" id="formcard">
       <div id="custpicker"></div>
       <div id="liveflags"></div>
       <label style="display:flex;align-items:center;gap:10px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);margin-bottom:10px">
@@ -968,16 +1004,23 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <button class="act go" id="ex_json">Create my send file</button>
       <p class="note" id="lastsend" style="margin-bottom:0"></p>
     </div>
-    <h2>Google Earth</h2>
+    <h2>Maps and GIS</h2>
     <div class="card">
-      <p class="note" style="margin-top:0">Opens your poles, lines and customers on the real satellite view in Google Earth. Works on the phone (Google Earth app) or on the computer.</p>
-      <button class="act go" id="ex_kml">Create Google Earth file (KML)</button>
+      <div class="exgrid">
+        <button class="exbtn main" id="ex_all"><span class="ex-ic" style="background:var(--ink)">ALL</span><span><b>Complete package</b><small>Google Earth + shapefiles + CSV + photos, in one ZIP</small></span></button>
+        <button class="exbtn" id="ex_kml"><span class="ex-ic" style="background:#1C7293">KMZ</span><span><b>Google Earth</b><small>Every point with its photo and details</small></span></button>
+        <button class="exbtn" id="ex_shp"><span class="ex-ic" style="background:#2F8F6B">SHP</span><span><b>Shapefiles</b><small>Transformer, poles, LV network, customers, service cables · TM Rwanda</small></span></button>
+        <button class="exbtn" id="ex_csvzip"><span class="ex-ic" style="background:#D98324">CSV</span><span><b>CSV tables</b><small>One table per layer, in one ZIP</small></span></button>
+      </div>
+      <p class="note" id="exstat" style="margin:10px 0 0">Coordinates in the shapefiles are TM Rwanda (CM 30°E). Photos open from the Photo field.</p>
     </div>
     <div id="unbtns" style="display:none"></div>
-    <h2>Spare copies</h2>
     <div class="card">
-      <div id="csvbtns"></div>
-      <p class="note" style="margin-bottom:0">These CSVs carry the same columns as the Excel workbook. The supervisor does not need them, the send file is enough.</p>
+      <details class="sub">
+        <summary>Single CSV files and the Phase 2 customer list</summary>
+        <div id="csvbtns" style="margin-top:8px"></div>
+        <p class="note" style="margin-bottom:0">Same columns as the Excel workbook. The supervisor does not need them, the send file is enough.</p>
+      </details>
     </div>
     <div class="card">
       <p class="note" style="margin-top:0">Only after the supervisor confirms they have your file.</p>
@@ -1001,7 +1044,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 var ASSEMBLY=['ABC Suspension Assembly (0\u00B0 - 30\u00B0)','ABC Strain Assembly (30\u00B0 - 60\u00B0)','ABC Strain Assembly (60\u00B0 - 90\u00B0)',
   'T-Off Assembly from Intermediate','T-Off Assembly from Strain','Cross Intermediate-Intermediate Assembly',
   'Cross Intermediate-Strain Assembly','Cross strain-Strain Assembly','ABC Terminal Assembly'];
-var POLE_CLASS=['S100','S140','S190','S225','S255'];
+var POLE_CLASS=['S100','S140','S190','S255'];
 var REG_CLASS=['S100','S140','S190','S225'];
 var STRUCTURE=['Single Wooden','Single Concrete','Single Steel','HP Wooden','HP Concrete','HP Steel'];
 var HEIGHT=['6.5m','9m','10m','12m'];
@@ -1040,7 +1083,7 @@ var SCHEMA={
     {k:'Height_m',t:'sel',o:HEIGHT},
     {k:'Wooden_Pol',t:'sel',o:POLE_CLASS,hint:'pole class'},
     {k:'Assembly',t:'sel',o:ASSEMBLY},
-    {k:'STAY_ASSEM',t:'sel',o:YESNO,hint:'1 = stay fitted'},
+    {k:'STAY_ASSEM',t:'sel',o:['0','1','2'],hint:'how many are fitted'},
     {k:'Flaying_st',t:'sel',o:YESNO,hint:'1 = flying stay'},
     {k:'Earthing',t:'sel',o:YESNO,hint:'1 = pole earthed'},
     {k:'Photo',t:'photo'},
@@ -1089,6 +1132,36 @@ var SCHEMA={
     {k:'Photo',t:'photo'},
   ]}
 };
+/* what the agent reads; the export keeps the field keys */
+var LABELS={Pole_Numbe:'Pole number',TRF_Name:'Transformer',From_Pole:'Fed from',Conductor:'Conductor',Span_Length_m:'Span (m)',
+  Structure:'Structure',Height_m:'Height',Wooden_Pol:'Pole class',Assembly:'Assembly',STAY_ASSEM:'Stay assemblies',Flaying_st:'Flying stay',Earthing:'Earthing',Photo:'Photo',
+  'HSE No.':'House number',POLES:'Supply pole','Horizontal distance of cable from pole to house':'Pole to house (m)','Distance source':'Distance source',
+  'REAL LENGTH OF SERVICE CABLE':'Cable length (m)',Service_Cable:'Service cable','FIRST NAME':'First name','Second Name':'Last name',Category:'Category',
+  'TYPE OF CUSTOMMER':'Customer type',Phase:'Phase','Meter Type':'Meter type',Meter_number:'Meter number',ID:'National ID',UPI:'UPI / parcel',Phone_number:'Phone',
+  READYBOARD:'Readyboard',Comment:'Comment',District:'District',Sector:'Sector',Cell:'Cell',Village:'Village',
+  MV_Feeder:'MV feeder',Pole_Number:'Mounted on pole',Capacity_kVA:'Capacity (kVA)',Phases:'Phases',Support:'Support',Serial_No:'Serial number',
+  Primary_kV:'Primary (kV)',LV_CB_Amp:'LV breaker (A)',MV_Fuse_A:'MV fuse (A)',MV_Earth_Ohm:'MV earth (Ω)',LV_Earth_Ohm:'LV earth (Ω)',
+  Manufacturer:'Manufacturer',Year:'Year',Notes:'Notes'};
+var HINTS={From_Pole:'previous pole, or the transformer',Conductor:'',Span_Length_m:'from GPS','Horizontal distance of cable from pole to house':'blank = GPS',
+  'REAL LENGTH OF SERVICE CABLE':'auto',Wooden_Pol:'',Flaying_st:'',Earthing:'',READYBOARD:'','HSE No.':'automatic, SN of the list',POLES:'',Category:'',ID:'16 digits',UPI:'',Phone_number:'078…',
+  MV_Earth_Ohm:'max 5',LV_Earth_Ohm:'max 10'};
+var SECTIONS={
+  trf:[['Identity',['TRF_Name','MV_Feeder','Pole_Number','Serial_No','Manufacturer','Year']],
+       ['Rating',['Capacity_kVA','Primary_kV','Phases','Support','LV_CB_Amp','MV_Fuse_A']],
+       ['Earth resistance',['MV_Earth_Ohm','LV_Earth_Ohm']],['Notes and photo',['Notes','Photo']]],
+  pole:[['Line',['Pole_Numbe','From_Pole','Conductor','Span_Length_m']],
+        ['Pole',['Structure','Height_m','Wooden_Pol','Assembly']],
+        ['Fittings',['STAY_ASSEM','Flaying_st','Earthing']],['Photo',['Photo']]],
+  cust:[['Connection',['HSE No.','POLES','Horizontal distance of cable from pole to house','REAL LENGTH OF SERVICE CABLE','Service_Cable']],
+        ['Customer',['FIRST NAME','Second Name','Category','Phase','Meter_number','Phone_number','ID','UPI']],
+        ['Note and photo',['Comment','Photo']]]
+};
+var HALF=['Conductor','Span_Length_m','Height_m','Wooden_Pol','Flaying_st','Earthing','Capacity_kVA','Primary_kV','LV_CB_Amp','MV_Fuse_A',
+  'MV_Earth_Ohm','LV_Earth_Ohm','Serial_No','Year','Horizontal distance of cable from pole to house','REAL LENGTH OF SERVICE CABLE',
+  'FIRST NAME','Second Name','Meter_number','Phone_number'];
+var TYPE_ORDER=['trf','pole','cust'];
+var CHIP_COLOR={trf:'#C8463A',pole:'#143642',cust:'#2F8F6B'};
+function lbl(k){ return LABELS[k]||k; }
 var TRF_TABLE={'10':[50,1,1],'15':[80,1,1],'25':[125,1,1],'50':[80,2,4],'75':[125,2,4],'100':[160,3,5],'160':[250,4,8],
   '200':[315,5,10],'250':[400,6,12],'315':[500,8,16],'400':[630,8,16],'630':[1000,13,26]};
 
@@ -1107,7 +1180,7 @@ var roster=[];        // known customers for this zone
 var selectedCust=null;
 var pendingPole='';    // supply pole label from a picked roster customer
 var KEY='wkasbuilt.v3';
-var BUILD='2026-11-09-z2';
+var BUILD='2026-11-09-v3';
 function $(s){return document.querySelector(s);}
 function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},2600);}
 function ofType(t){return records.filter(function(r){return r.type===t;});}
@@ -1292,6 +1365,7 @@ function badges(){
   $('#n_all').textContent=records.length;
   var kmEl=$('#n_km'); if(kmEl) kmEl.textContent=(walkedKm()/1000).toFixed(1);
   var ns=$('#n_send'); if(ns){ var u=unexportedCount(); ns.textContent=u; ns.style.display=u>0?'':'none'; ns.style.background=u>0?'var(--live)':''; }
+  if($('#chips')&&$('#chips').children.length) renderChips();
   $('#zonelbl').textContent=[ctx.trf,ctx.village].filter(Boolean).join(' \u00B7 ')||'Choose a transformer';
 }
 
@@ -1628,7 +1702,7 @@ function showDiagram(){ $('#minimap').style.display='block'; $('#satmap').style.
 function unsavedCue(){
   var el=$('#savestate'); if(!el) return;
   if(editingId){ el.textContent='Editing \u2014 press Update point'; el.style.color='var(--live)'; return; }
-  if(hasUnsaved()){ el.textContent='\u26A0 Not saved yet \u2014 press Save point'; el.style.color='var(--live)'; }
+  if(hasUnsaved()){ el.textContent='\u26A0 Not saved yet \u2014 press Save'; el.style.color='var(--live)'; }
   else { el.textContent=lastSaveOk?'\u2713 last point saved':'\u26A0 storage problem'; el.style.color=lastSaveOk?'var(--earth)':'var(--live)'; }
 }
 function captureDraft(){
@@ -1654,8 +1728,10 @@ var CHIP_ICON={
   trf:'<svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="11" rx="2"/><path d="M8 7V4m8 3V4M9 12h2m3 0h1"/></svg>'
 };
 function renderChips(){
-  $('#chips').innerHTML=Object.keys(SCHEMA).map(function(k){var s=SCHEMA[k];
-    return '<button class="chip" style="--c:'+s.color+'" data-k="'+k+'" aria-pressed="'+(k===active)+'">'+(CHIP_ICON[k]||'')+'<span>'+s.label+'</span></button>';}).join('');
+  $('#chips').innerHTML=TYPE_ORDER.map(function(k,i){var s=SCHEMA[k], n=ofType(k).length;
+    return '<button class="chip" style="--c:'+CHIP_COLOR[k]+'" data-k="'+k+'" aria-pressed="'+(k===active)+'">'
+      +'<span class="step">'+(i+1)+'</span><span class="ic">'+(CHIP_ICON[k]||'')+'</span><span class="cl">'+s.label+'</span>'
+      +'<span class="cn">'+(n?n+' saved':'none yet')+'</span></button>';}).join('');
   Array.prototype.forEach.call($('#chips').querySelectorAll('.chip'),function(c){
     c.onclick=function(){ captureDraft(); active=c.dataset.k; editingId=null; photoData=null; photoTime=null; selectedCust=null; renderChips(); renderForm(); };});
 }
@@ -1679,33 +1755,53 @@ function fieldHtml(f,rec,s){
   if(!rec&&repeatOn&&!val&&lastVals[active]&&lastVals[active][f.k]!=null&&(CARRY[active]||[]).indexOf(f.k)>=0) val=lastVals[active][f.k];
   if(!rec&&drafts[active]&&drafts[active][f.k]!=null&&drafts[active][f.k]!=='') val=drafts[active][f.k];
   var id=key(f.k);
-  var lab='<label for="'+id+'">'+esc(f.k)+(f.hint?' <em>'+esc(f.hint)+'</em>':'')+'</label>';
+  var hint=(f.k in HINTS)?HINTS[f.k]:f.hint;
+  var lab='<label for="'+id+'">'+esc(lbl(f.k))+(hint?' <em>'+esc(hint)+'</em>':'')+'</label>';
+  var cls='field'+(f.req?' req':'')+(HALF.indexOf(f.k)>=0?' half':'');
+  if(f.t==='pole'&&f.k==='From_Pole'){
+    var tn=trfNames(), pn=poles().map(function(p){return p.props['Pole_Numbe'];}).filter(Boolean).reverse();
+    var other=!!val&&tn.indexOf(val)<0&&pn.indexOf(val)<0;
+    return '<div class="'+cls+'"><label for="'+id+'_sel">'+esc(lbl(f.k))+(hint?' <em>'+esc(hint)+'</em>':'')+'</label>'
+      +'<select id="'+id+'_sel">'
+      +'<option value=""'+(!val?' selected':'')+'>Start of a line, no previous pole</option>'
+      +(tn.length?'<optgroup label="Transformer">'+tn.map(function(n){return '<option value="'+esc(n)+'"'+(n===val?' selected':'')+'>\u26A1 '+esc(n)+'</option>';}).join('')+'</optgroup>':'')
+      +(pn.length?'<optgroup label="Poles on this phone, newest first">'+pn.map(function(n){return '<option value="'+esc(n)+'"'+(n===val?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</optgroup>':'')
+      +'<option value="__other"'+(other?' selected':'')+'>Another pole, type its number\u2026</option>'
+      +'</select>'
+      +'<input id="'+id+'" placeholder="Pole number, e.g. P04012" autocomplete="off" style="margin-top:8px;'+(other?'':'display:none')+'" value="'+esc(val)+'"></div>';
+  }
   if(f.t==='photo') return '<div class="field">'+lab
     +'<input type="file" id="'+id+'" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">'
     +'<button type="button" class="shot" id="'+id+'_btn" onclick="document.getElementById(\''+id+'\').click()">'
     +'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>'
     +'<span>'+(photoData?'Retake photo':'Take photo on site')+'</span></button>'
     +'<div id="preview">'+(photoData?'<img src="'+photoData+'" style="max-width:140px;margin-top:8px;border:1px solid var(--rule);border-radius:10px">':'')+'</div></div>';
-  if(f.t==='pole') return '<div class="field'+(f.req?' req':'')+'">'+lab+'<select id="'+id+'"><option value=""></option>'
-    +(f.k==='From_Pole'?trfNames().map(function(n){return '<option value="'+esc(n)+'" '+(n===val?'selected':'')+'>\u26A1 Transformer '+esc(n)+'</option>';}).join(''):'')
+  if(f.t==='pole') return '<div class="'+cls+'">'+lab+'<select id="'+id+'"><option value=""></option>'
     +poles().map(function(p){var n=p.props['Pole_Numbe'];return '<option '+(n===val?'selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select></div>';
-  if(f.t==='calc') return '<div class="field">'+lab+'<input id="'+id+'" readonly value="'+esc(val)+'"></div>';
+  if(f.t==='calc') return '<div class="'+cls.replace(' req','')+'">'+lab+'<input id="'+id+'" readonly value="'+esc(val)+'"></div>';
   if(f.t==='sel'){
     var opts=f.o||[]; var yn=(opts.length===2&&opts[0]==='0'&&opts[1]==='1');
+    if(opts.length<=3&&opts.every(function(o){return String(o).length<=14;})){
+      var cnt=(f.k==='STAY_ASSEM');
+      return '<div class="'+cls+'">'+lab+'<input type="hidden" id="'+id+'" value="'+esc(val)+'">'
+        +'<div class="opts seg" data-for="'+id+'">'+opts.map(function(o){ var t=yn?(o==='1'?'Yes':'No'):(cnt&&o==='0'?'None':o);
+          return '<button type="button" class="opt" data-v="'+esc(o)+'" aria-pressed="'+(o===val)+'">'+esc(t)+'</button>'; }).join('')+'</div></div>';
+    }
     var optHtml=opts.map(function(o){ var t=yn?(o==='1'?'Yes':'No'):o;
       return '<option value="'+esc(o)+'"'+(o===val?' selected':'')+'>'+esc(t)+'</option>';}).join('');
-    return '<div class="field'+(f.req?' req':'')+'">'+lab
+    return '<div class="'+cls+'">'+lab
       +'<select id="'+id+'" style="font-size:16px"><option value="">— choose —</option>'+optHtml+'</select></div>';
   }
-  if(f.auto) return '<div class="field'+(f.req?' req':'')+'">'+lab+'<input id="'+id+'" readonly tabindex="-1" style="background:var(--paper);font-weight:700" value="'+esc(val)+'"></div>';
-  return '<div class="field'+(f.req?' req':'')+'">'+lab+'<input id="'+id+'" '+(f.t==='num'?'inputmode="decimal"':'')+' value="'+esc(val)+'"></div>';
+  if(f.auto) return '<div class="'+cls+'">'+lab+'<input id="'+id+'" readonly tabindex="-1" style="background:var(--paper);font-weight:700" value="'+esc(val)+'"></div>';
+  return '<div class="'+cls+'">'+lab+'<input id="'+id+'" '+(f.t==='num'?'inputmode="decimal"':'')+' value="'+esc(val)+'"></div>';
 }
 document.addEventListener('click',function(e){
   var o=e.target; while(o&&o!==document&&!(o.className&&String(o.className).indexOf('opt')>=0&&o.hasAttribute&&o.hasAttribute('data-v'))) o=o.parentNode;
   if(!o||o===document) return;
   var wrap=o.parentNode; var inp=document.getElementById(wrap.getAttribute('data-for')); if(!inp) return;
-  inp.value=o.getAttribute('data-v');
-  for(var i=0;i<wrap.children.length;i++) wrap.children[i].setAttribute('aria-pressed', wrap.children[i]===o?'true':'false');
+  var on=o.getAttribute('aria-pressed')==='true';
+  inp.value=on?'':o.getAttribute('data-v');
+  for(var i=0;i<wrap.children.length;i++) wrap.children[i].setAttribute('aria-pressed', (!on&&wrap.children[i]===o)?'true':'false');
   inp.dispatchEvent(new Event('change'));
 });
 /* ================== customer roster (known customers) ================== */
@@ -1920,11 +2016,22 @@ function renderForm(rec){
     if(hideId.indexOf(f.k)>=0) return false;
     return true;
   });
-  $('#form').innerHTML=vis.map(function(f){return fieldHtml(f,rec,s);}).join('');
+  var secs=(SECTIONS[active]||[]).map(function(sc){ return {t:sc[0], f:vis.filter(function(f){return sc[1].indexOf(f.k)>=0;})}; });
+  var placed={}; secs.forEach(function(sc){ sc.f.forEach(function(f){ placed[f.k]=1; }); });
+  var rest=vis.filter(function(f){return !placed[f.k];}); if(rest.length){ if(secs.length) secs.splice(secs.length-1,0,{t:'More',f:rest}); else secs.push({t:'',f:rest}); }
+  $('#form').innerHTML=secs.filter(function(sc){return sc.f.length;}).map(function(sc){
+    return (sc.t?'<div class="fsec">'+esc(sc.t)+'</div>':'')+'<div class="fgrid">'+sc.f.map(function(f){return fieldHtml(f,rec,s);}).join('')+'</div>'; }).join('');
+  var fps=document.getElementById(key('From_Pole')+'_sel');
+  if(fps) fps.onchange=function(){ var inp=fld('From_Pole');
+    if(fps.value==='__other'){ inp.style.display=''; inp.value=''; inp.focus(); }
+    else { inp.style.display='none'; inp.value=fps.value; }
+    inp.dispatchEvent(new Event('change')); };
   renderPicker();
   var pf=fld('Photo'); if(pf) pf.onchange=function(e){compress(e.target.files[0]);};
   s.fields.forEach(function(f){var el=fld(f.k); if(el&&f.t!=='photo') el.oninput=el.onchange=function(){recalc();unsavedCue();};});
-  $('#btn_save').textContent=editingId?'Update point':'Save point';
+  $('#btn_save').textContent=editingId?('Update '+s.label.toLowerCase()):('Save '+s.label.toLowerCase());
+  $('#btn_save').style.background=CHIP_COLOR[active]||'';
+  var fcd=$('#formcard'); if(fcd) fcd.style.setProperty('--fc',CHIP_COLOR[active]||'');
   var ep=$('#editpos'); if(ep) ep.style.display=editingId?'block':'none';
   carryHint();
   recalc();
@@ -2006,7 +2113,7 @@ function recalc(){
     var a=nodeByNo(gv('From_Pole'));
     if(a&&fix){ var dd=dist(a,fix); sv('Span_Length_m',dd.toFixed(2));
       info.push('Span from '+nodeName(a)+': <b>'+dd.toFixed(1)+' m</b>.'); }
-    else { sv('Span_Length_m',''); if(gv('From_Pole')&&!a) info.push(trfNames().indexOf(gv('From_Pole'))>=0?'Record the transformer point too, so this first span can be measured and drawn.':'From_Pole not found among your poles yet.'); }
+    else { sv('Span_Length_m',''); if(gv('From_Pole')&&!a) info.push(trfNames().indexOf(gv('From_Pole'))>=0?'Record the transformer point too, so this first span can be measured and drawn.':'Pole '+esc(gv('From_Pole'))+' is not on this phone. Fine if another agent recorded it: the supervisor joins the span.'); }
   }
   var el=$('#liveflags');
   if(el) el.innerHTML = info.length ? '<div class="flag warnlvl" style="border-left-color:var(--earth)">'+info.join('<br>')+'</div>' : '';
@@ -2033,7 +2140,7 @@ $('#btn_save').onclick=function(){
     else { // hidden because it is shown in the banner of the chosen customer
       var srcv=(active==='cust'&&selectedCust)?custProps(selectedCust):{};
       val=String(srcv[f.k]!=null?srcv[f.k]:((drafts[active]||{})[f.k]||'')).trim(); }
-    if(f.req&&!val){toast(f.k+' is required'); if(el) el.focus(); return;}
+    if(f.req&&!val){toast(lbl(f.k)+' is required'); if(el) el.focus(); return;}
     props[f.k]=val;
   }
   ['District','Sector','Cell','Village'].forEach(function(k){
@@ -2082,7 +2189,7 @@ $('#btn_save').onclick=function(){
 };
 
 /* ================== list ================== */
-$('#r_filter').innerHTML='<option value="">All sheets</option>'+Object.keys(SCHEMA).map(function(k){
+$('#r_filter').innerHTML='<option value="">All sheets</option>'+TYPE_ORDER.map(function(k){
   return '<option value="'+k+'">'+SCHEMA[k].label+'</option>';}).join('');
 $('#r_filter').onchange=renderRecords; $('#r_search').oninput=renderRecords;
 function editRecord(id){
@@ -2242,11 +2349,11 @@ function renderQA(){
 }
 function renderSend(){
   renderQA();
-  $('#counts').innerHTML=Object.keys(SCHEMA).map(function(k){
+  $('#counts').innerHTML=TYPE_ORDER.map(function(k){
     return '<div class="cnt"><span>'+SCHEMA[k].label+'</span><b>'+ofType(k).length+'</b></div>';}).join('')
     +'<div class="cnt"><span>LV Span <span class="note">derived</span></span><b>'+spans().length+'</b></div>'
     +'<div class="cnt" style="border:0"><span><b>Total</b></span><b>'+records.length+'</b></div>';
-  var html=Object.keys(SCHEMA).concat(['span']).map(function(k){var n=nOf(k);
+  var html=TYPE_ORDER.concat(['span']).map(function(k){var n=nOf(k);
     var sheet=k==='span'?'LV Lines':SCHEMA[k].sheet;
     return n?'<button class="act ghost" data-csv="'+k+'" style="margin-bottom:8px">CSV '+sheet+' ('+n+')</button>':'';}).join('');
   var p2n=custs().length;
@@ -2254,7 +2361,7 @@ function renderSend(){
     + (html||'<p class="note">Nothing to export.</p>');
   var p2b=$('#btn_p2cust'); if(p2b) p2b.onclick=csvP2Cust;
   Array.prototype.forEach.call($('#csvbtns').querySelectorAll('[data-csv]'),function(b){b.onclick=function(){csv(b.dataset.csv);};});
-  var uh=Object.keys(SCHEMA).concat(['span']).map(function(k){var n=nOf(k);
+  var uh=TYPE_ORDER.concat(['span']).map(function(k){var n=nOf(k);
     return n?'<button class="act ghost" data-un="'+k+'" style="margin-bottom:8px">'+UN_LAYER[k]+' ('+n+')</button>':'';}).join('');
   $('#unbtns').innerHTML=uh||'<p class="note">Nothing to export.</p>';
   Array.prototype.forEach.call($('#unbtns').querySelectorAll('[data-un]'),function(b){b.onclick=function(){unCsv(b.dataset.un);};});
@@ -2345,7 +2452,7 @@ function unCsv(type){
   toast(UN_LAYER[type]+' exported');
 }
 function kmlEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function buildKML(){
+function buildKML(imgDir){
   var parts=[];
   parts.push('<?xml version="1.0" encoding="UTF-8"?>');
   parts.push('<kml xmlns="http://www.opengis.net/kml/2.2"><Document>');
@@ -2356,8 +2463,9 @@ function buildKML(){
   parts.push('<Style id="cust"><IconStyle><color>ff5b7912</color><scale>0.8</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/homegardenbusiness.png</href></Icon></IconStyle></Style>');
   parts.push('<Style id="line"><LineStyle><color>ffa35f2e</color><width>3</width></LineStyle></Style>');
   parts.push('<Style id="drop"><LineStyle><color>a05b7912</color><width>1</width></LineStyle></Style>');
-  function pt(style,name,desc,lon,lat){
-    parts.push('<Placemark><name>'+kmlEsc(name)+'</name><description>'+kmlEsc(desc)+'</description>'
+  function pt(style,name,desc,lon,lat,r){
+    if(r&&imgDir!==undefined) desc=kmlDesc(r.type,r,r.photo?imgDir+photoName(r):''); else desc=kmlEsc(desc);
+    parts.push('<Placemark><name>'+kmlEsc(name)+'</name><description>'+desc+'</description>'
       +'<styleUrl>#'+style+'</styleUrl><Point><coordinates>'+lon.toFixed(8)+','+lat.toFixed(8)+',0</coordinates></Point></Placemark>');
   }
   // LV line folder from real spans
@@ -2365,6 +2473,7 @@ function buildKML(){
   spans().forEach(function(sp){
     var a=nodeByNo(sp.From_Pole), b=sp.pole; if(!a||!b) return;
     parts.push('<Placemark><name>'+kmlEsc(sp.Span_ID)+'</name><description>'+kmlEsc((sp.Conductor||'')+' '+sp.Length_m.toFixed(1)+' m')+'</description>'
+      +'<ExtendedData><Data name="From"><value>'+kmlEsc(sp.From_Pole)+'</value></Data><Data name="To"><value>'+kmlEsc(sp.To_Pole)+'</value></Data><Data name="Length_m"><value>'+sp.Length_m.toFixed(2)+'</value></Data></ExtendedData>'
       +'<styleUrl>#line</styleUrl><LineString><tessellate>1</tessellate><coordinates>'
       +a.lon.toFixed(8)+','+a.lat.toFixed(8)+',0 '+b.lon.toFixed(8)+','+b.lat.toFixed(8)+',0</coordinates></LineString></Placemark>');
   });
@@ -2379,25 +2488,151 @@ function buildKML(){
   // poles
   parts.push('<Folder><name>Poles</name>');
   poles().forEach(function(p){ pt('pole',p.props['Pole_Numbe']||'pole',
-    (p.props['Wooden_Pol']||'')+' '+(p.props['Assembly']||''),p.lon,p.lat); });
+    (p.props['Wooden_Pol']||'')+' '+(p.props['Assembly']||''),p.lon,p.lat,p); });
   parts.push('</Folder>');
   // transformers
   parts.push('<Folder><name>Transformers</name>');
-  ofType('trf').forEach(function(t){ pt('trf',t.props['TRF_Name']||'TRF',(t.props['Capacity_kVA']||'')+' kVA',t.lon,t.lat); });
+  ofType('trf').forEach(function(t){ pt('trf',t.props['TRF_Name']||'TRF',(t.props['Capacity_kVA']||'')+' kVA',t.lon,t.lat,t); });
   parts.push('</Folder>');
   // customers
   parts.push('<Folder><name>Customers</name>');
   custs().forEach(function(c){ pt('cust',c.props['HSE No.']||'HH',
-    [c.props['FIRST NAME'],c.props['Second Name']].filter(Boolean).join(' ')+' \u00B7 '+(c.props['Meter_number']||''),c.lon,c.lat); });
+    [c.props['FIRST NAME'],c.props['Second Name']].filter(Boolean).join(' ')+' \u00B7 '+(c.props['Meter_number']||''),c.lon,c.lat,c); });
   parts.push('</Folder>');
   parts.push('</Document></kml>');
   return parts.join('\n');
 }
-$('#ex_kml').onclick=function(){
-  if(!records.length){toast('Nothing to map yet');return;}
-  dl(agentSlug()+'_'+(ctx.trf||'survey')+'_'+stamp()+'.kml', buildKML(), 'application/vnd.google-earth.kml+xml');
-  toast('Google Earth file created');
-};
+/* ================== GIS export: KMZ with photos, shapefiles, CSV ================== */
+var CRC_T=(function(){var t=new Uint32Array(256),c;for(var n=0;n<256;n++){c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u){var c=0xFFFFFFFF;for(var i=0;i<u.length;i++)c=CRC_T[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function u8(t){return new TextEncoder().encode(t);}
+function catBytes(list){var n=0;list.forEach(function(a){n+=a.length;});var o=new Uint8Array(n),p=0;list.forEach(function(a){o.set(a,p);p+=a.length;});return o;}
+function zipBytes(files){ // stored (no compression): photos are already JPEG
+  var parts=[],central=[],off=0,now=new Date();
+  var dt=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1))&0xFFFF, dd=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate())&0xFFFF;
+  files.forEach(function(f){
+    var nm=u8(f.name), d=(typeof f.data==='string')?u8(f.data):f.data, crc=crc32(d);
+    var h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);
+    h.setUint32(14,crc,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nm.length,true);
+    parts.push(new Uint8Array(h.buffer),nm,d);
+    var c=new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(12,dt,true);c.setUint16(14,dd,true);
+    c.setUint32(16,crc,true);c.setUint32(20,d.length,true);c.setUint32(24,d.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+    central.push(new Uint8Array(c.buffer),nm);
+    off+=30+nm.length+d.length;
+  });
+  var cd=catBytes(central), e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cd.length,true);e.setUint32(16,off,true);
+  return catBytes(parts.concat([cd,new Uint8Array(e.buffer)]));
+}
+function dlBytes(name,bytes,mime){
+  var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([bytes],{type:mime})); a.download=name; a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},8000);
+}
+function photoBytes(d){ var b=atob(String(d).split(',')[1]||''), u=new Uint8Array(b.length); for(var i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+function photoName(r){ if(!r.photo) return '';
+  var lab=r.type==='pole'?r.props['Pole_Numbe']:r.type==='trf'?('TRF_'+(r.props['TRF_Name']||'')):('House_'+(r.props['HSE No.']||''));
+  return String(lab||r.type).replace(/[^A-Za-z0-9_-]+/g,'_')+'_'+String(r.id).replace(/[^A-Za-z0-9]/g,'').slice(-5)+'.jpg'; }
+function photoFiles(prefix){ return records.filter(function(r){return r.photo;}).map(function(r){ return {name:prefix+photoName(r), data:photoBytes(r.photo)}; }); }
+function baseName(){ return agentSlug()+'_'+String(ctx.trf||'survey').replace(/[^A-Za-z0-9_-]+/g,'_')+'_'+stamp(); }
+function kmlDesc(type,r,img){
+  var h=HEADERS[type], row=(type==='span')?r:rowFor(type,r);
+  var t='<table style="font-family:Arial,sans-serif;font-size:12px;border-collapse:collapse">'+h.map(function(k,i){ var v=row[i];
+    return (v===''||v==null)?'':'<tr><td style="color:#5E6E72;padding:2px 10px 2px 0;white-space:nowrap">'+kmlEsc(lbl(k))+'</td><td style="font-weight:bold">'+kmlEsc(v)+'</td></tr>'; }).join('')+'</table>';
+  if(img) t='<img src="'+img+'" width="380"/><br/>'+t;
+  return '<![CDATA['+t.replace(/\]\]>/g,']] >')+']]>';
+}
+function csvText(type){
+  function q(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
+  var rows=(type==='span'?spanRows():ofType(type).map(function(r){return rowFor(type,r);})).map(function(a){return a.map(q).join(',');});
+  return 'sep=,\n'+HEADERS[type].map(q).join(',')+'\n'+rows.join('\n');
+}
+/* ---- shapefile ---- */
+var PRJ_TM_RW='PROJCS["ITRF2005_TM_Rwanda",GEOGCS["GCS_ITRF_2005",DATUM["D_ITRF_2005",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",5000000.0],PARAMETER["Central_Meridian",30.0],PARAMETER["Scale_Factor",0.9999],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]';
+var DBF_NAME={'HSE No.':'HSE_No','Horizontal distance of cable from pole to house':'H_Dist_m','REAL LENGTH OF SERVICE CABLE':'Real_Len_m','FIRST NAME':'First_Name',
+  'Second Name':'Last_Name','TYPE OF CUSTOMMER':'Cust_Type','Meter_number':'Meter_No','Phone_number':'Phone','Service_Cable':'Serv_Cable','Distance source':'Dist_Src',
+  'Span_Length_m':'Span_Len_m','Capacity_kVA':'Cap_kVA','Manufacturer':'Manufactr','MV_Earth_Ohm':'MV_Earth','LV_Earth_Ohm':'LV_Earth','Meter Type':'Meter_Type',
+  'Photo_Time':'Photo_Time','Accuracy_m':'Accuracy_m','Pole_Number':'Pole_No','X_house':'X_house','Y_house':'Y_house'};
+function dbfNames(h){ var used={}; return h.map(function(k){ var n=(DBF_NAME[k]||k).replace(/[^A-Za-z0-9_]/g,'_').slice(0,10), b=n, i=1;
+  while(used[n.toUpperCase()]){ n=b.slice(0,7)+'_'+(i++); } used[n.toUpperCase()]=1; return n; }); }
+function dbfBytes(names,rows){
+  var enc=new TextEncoder(), rb=rows.map(function(r){return names.map(function(_,i){var v=r[i];return enc.encode(v==null?'':String(v));});});
+  var w=names.map(function(_,i){var m=1;rb.forEach(function(r){m=Math.max(m,r[i].length);});return Math.min(254,m);});
+  var hl=32+32*names.length+1, rl=1+w.reduce(function(a,b){return a+b;},0), buf=new Uint8Array(hl+rl*rows.length+1), dv=new DataView(buf.buffer), d=new Date();
+  buf[0]=3; buf[1]=d.getFullYear()-1900; buf[2]=d.getMonth()+1; buf[3]=d.getDate();
+  dv.setUint32(4,rows.length,true); dv.setUint16(8,hl,true); dv.setUint16(10,rl,true);
+  names.forEach(function(n,i){ var o=32+32*i; for(var j=0;j<n.length;j++) buf[o+j]=n.charCodeAt(j); buf[o+11]=67; buf[o+16]=w[i]; });
+  buf[hl-1]=0x0D;
+  rb.forEach(function(r,ri){ var o=hl+rl*ri; buf[o]=0x20; o++;
+    r.forEach(function(v,i){ var n=Math.min(v.length,w[i]); buf.set(v.subarray(0,n),o); for(var j=n;j<w[i];j++) buf[o+j]=0x20; o+=w[i]; }); });
+  buf[buf.length-1]=0x1A; return buf;
+}
+function shpBytes(kind,geoms){ // kind 1 = point [x,y]; 3 = polyline [[x,y],...]
+  var bb=[Infinity,Infinity,-Infinity,-Infinity];
+  function grow(p){ bb[0]=Math.min(bb[0],p[0]); bb[1]=Math.min(bb[1],p[1]); bb[2]=Math.max(bb[2],p[0]); bb[3]=Math.max(bb[3],p[1]); }
+  var recs=geoms.map(function(g){
+    if(kind===1){ grow(g); var v=new DataView(new ArrayBuffer(20)); v.setInt32(0,1,true); v.setFloat64(4,g[0],true); v.setFloat64(12,g[1],true); return new Uint8Array(v.buffer); }
+    var n=g.length, v=new DataView(new ArrayBuffer(48+16*n)), lb=[Infinity,Infinity,-Infinity,-Infinity];
+    g.forEach(function(p){ grow(p); lb[0]=Math.min(lb[0],p[0]); lb[1]=Math.min(lb[1],p[1]); lb[2]=Math.max(lb[2],p[0]); lb[3]=Math.max(lb[3],p[1]); });
+    v.setInt32(0,3,true); for(var i=0;i<4;i++) v.setFloat64(4+8*i,lb[i],true);
+    v.setInt32(36,1,true); v.setInt32(40,n,true); v.setInt32(44,0,true);
+    g.forEach(function(p,i){ v.setFloat64(48+16*i,p[0],true); v.setFloat64(56+16*i,p[1],true); });
+    return new Uint8Array(v.buffer);
+  });
+  if(!geoms.length) bb=[0,0,0,0];
+  function head(lenBytes){ var v=new DataView(new ArrayBuffer(100)); v.setInt32(0,9994,false); v.setInt32(24,lenBytes/2,false); v.setInt32(28,1000,true); v.setInt32(32,kind,true);
+    for(var i=0;i<4;i++) v.setFloat64(36+8*i,bb[i],true); return new Uint8Array(v.buffer); }
+  var shpParts=[], shxParts=[], off=100;
+  recs.forEach(function(c,i){ var rh=new DataView(new ArrayBuffer(8)); rh.setInt32(0,i+1,false); rh.setInt32(4,c.length/2,false);
+    var xh=new DataView(new ArrayBuffer(8)); xh.setInt32(0,off/2,false); xh.setInt32(4,c.length/2,false);
+    shpParts.push(new Uint8Array(rh.buffer),c); shxParts.push(new Uint8Array(xh.buffer)); off+=8+c.length; });
+  return {shp:catBytes([head(off)].concat(shpParts)), shx:catBytes([head(100+8*recs.length)].concat(shxParts))};
+}
+function shpLayer(prefix,name,kind,geoms,header,rows){
+  if(!geoms.length) return [];
+  var g=shpBytes(kind,geoms);
+  return [{name:prefix+name+'.shp',data:g.shp},{name:prefix+name+'.shx',data:g.shx},
+    {name:prefix+name+'.dbf',data:dbfBytes(dbfNames(header),rows)},{name:prefix+name+'.prj',data:PRJ_TM_RW},{name:prefix+name+'.cpg',data:'UTF-8'}];
+}
+function shpFiles(prefix,photoDir){
+  function ph(r){ return r.photo?photoDir+photoName(r):''; }
+  function pts(type){ var R=ofType(type); return {g:R.map(function(r){return [r.x,r.y];}),
+    rows:R.map(function(r){return rowFor(type,r).concat([r.lat.toFixed(8),r.lon.toFixed(8),ph(r)]);})}; }
+  var ex=['Lat','Lon','Photo'], out=[], t=pts('trf'), p=pts('pole'), c=pts('cust');
+  out=out.concat(shpLayer(prefix,'Transformer',1,t.g,HEADERS.trf.concat(ex),t.rows));
+  out=out.concat(shpLayer(prefix,'Poles',1,p.g,HEADERS.pole.concat(ex),p.rows));
+  var sp=spans().filter(function(x){return nodeByNo(x.From_Pole);});
+  out=out.concat(shpLayer(prefix,'LV_Network',3,sp.map(function(x){var a=nodeByNo(x.From_Pole);return [[a.x,a.y],[x.pole.x,x.pole.y]];}),
+    HEADERS.span,spanRows()));
+  out=out.concat(shpLayer(prefix,'Customers',1,c.g,HEADERS.cust.concat(ex),c.rows));
+  var dr=custs().filter(function(r){return poleByNo(r.props['POLES']);});
+  out=out.concat(shpLayer(prefix,'Service_Cable',3,dr.map(function(r){var pl=poleByNo(r.props['POLES']);return [[pl.x,pl.y],[r.x,r.y]];}),
+    ['HSE No.','POLES','Name','Service_Cable','REAL LENGTH OF SERVICE CABLE','Horizontal distance of cable from pole to house','Distance source'],
+    dr.map(function(r){var q=r.props;return [q['HSE No.'],q['POLES'],[q['FIRST NAME'],q['Second Name']].filter(Boolean).join(' '),q['Service_Cable'],
+      q['REAL LENGTH OF SERVICE CABLE'],q['Horizontal distance of cable from pole to house'],q['Distance source']];})));
+  return out;
+}
+function kmzBytes(){ return zipBytes([{name:'doc.kml',data:buildKML('files/')}].concat(photoFiles('files/'))); }
+function csvFiles(prefix){ var o=[];
+  [['trf','Transformer'],['pole','Poles'],['span','LV_Network'],['cust','Customers']].forEach(function(t){ if(nOf(t[0])) o.push({name:prefix+t[1]+'.csv',data:'﻿'+csvText(t[0])}); });
+  return o; }
+function exportGuard(){ if(!records.length){ toast('Nothing to export yet'); return false; } return true; }
+function exportDone(what){ var e=$('#exstat'); if(e) e.textContent=what+' created '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'. Find it in Downloads, or share it by WhatsApp.'; toast(what+' created'); }
+$('#ex_kml').onclick=function(){ if(!exportGuard()) return;
+  try{ dlBytes(baseName()+'.kmz', kmzBytes(), 'application/vnd.google-earth.kmz'); exportDone('Google Earth file'); }catch(e){ console.error(e); toast('Could not create the file: '+e.message); } };
+$('#ex_shp').onclick=function(){ if(!exportGuard()) return;
+  try{ var b=baseName(); dlBytes(b+'_shapefiles.zip', zipBytes(shpFiles(b+'/','Photos/').concat(photoFiles(b+'/Photos/'))), 'application/zip'); exportDone('Shapefiles'); }
+  catch(e){ console.error(e); toast('Could not create the file: '+e.message); } };
+$('#ex_csvzip').onclick=function(){ if(!exportGuard()) return;
+  try{ var b=baseName(); dlBytes(b+'_csv.zip', zipBytes(csvFiles(b+'/')), 'application/zip'); exportDone('CSV tables'); }
+  catch(e){ console.error(e); toast('Could not create the file: '+e.message); } };
+$('#ex_all').onclick=function(){ if(!exportGuard()) return;
+  try{ var b=baseName();
+    var files=[{name:b+'/'+b+'.kmz',data:kmzBytes()}].concat(shpFiles(b+'/Shapefiles/','../Photos/'))
+      .concat(csvFiles(b+'/CSV/')).concat(photoFiles(b+'/Photos/'));
+    dlBytes(b+'_GIS.zip', zipBytes(files), 'application/zip'); exportDone('Complete package'); }
+  catch(e){ console.error(e); toast('Could not create the file: '+e.message); } };
 $('#ex_json').onclick=function(){
   if(!records.length){toast('Nothing to send');return;}
   var q=qaCheck();
@@ -2452,6 +2687,7 @@ idbOpen().then(function(db){ idb=db; return restore(); }).then(function(){
   Object.keys(ctx).forEach(function(k){var el=$('#c_'+k); if(el) el.value=ctx[k]||'';});
   if(agent&&agent.name) closeGate();
   setRosterForTRF();
+  if(!records.length) active='trf';   // a new survey starts at the transformer
   renderChips(); renderForm(); badges(); gpsReady(); saveBadge(); renderRosterInfo(); renderSetupSelects(); updateSetup();
   var msd=$('#mapDiagram'), mss=$('#mapSat');
   if(msd) msd.onclick=showDiagram;
