@@ -1,7 +1,7 @@
 {
   "name": "Voltline",
   "short_name": "Voltline",
-  "description": "LV network as-built survey — walk the line, map the grid",
+  "description": "Voltline by Eng. Wilbert KIRARA — LV network as-built survey, RUEAP Lot 2, Kirehe and Ngoma districts: transformer, poles, spans and customers, satellite GPS in TM Rwanda, KMZ / shapefile / CSV / Excel export.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -12,6 +12,6 @@
   "icons": [
     {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
     {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ]
 }

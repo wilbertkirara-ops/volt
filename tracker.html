@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- Voltline — supervisor tracker (RUEAP Lot 2, Kirehe & Ngoma). Copyright (c) 2026 Eng. Wilbert KIRARA, Expert Surveyor in Electrical Power Lines. All rights reserved. -->
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -68,8 +69,8 @@
 <header>
   <div class="head-in">
     <div>
-      <div class="brand">Net<span>Survey</span></div>
-      <div class="sub">Supervisor tracker</div>
+      <div class="brand">Volt<span>line</span></div>
+      <div class="sub">Kirehe &amp; Ngoma · supervisor tracker · by Eng. Wilbert KIRARA</div>
     </div>
   </div>
   <nav role="tablist">
@@ -84,9 +85,9 @@
   <h2>Load the files you received</h2>
   <div class="card" style="padding:0;border:0;background:transparent">
     <label class="drop" id="drop" for="filein" style="display:block;cursor:pointer">
-      <b>Drop the .wkdc.json files here</b>
-      <div class="note" style="margin-top:6px">or click to choose them. You can load several at once, and reloading a surveyor replaces their previous file.</div>
-      <input type="file" id="filein" accept=".json,.wkdc.json,application/json" multiple hidden>
+      <b>Drop the surveyors’ send files here (.wklv.json)</b>
+      <div class="note" style="margin-top:6px">or click to choose them. You can load several at once, and a newer file from the same surveyor is merged with the earlier one (same points are replaced, new points are added).</div>
+      <input type="file" id="filein" accept=".json,.wklv.json,.wkdc.json,application/json" multiple hidden>
     </label>
     <div class="row" style="margin-top:10px">
       <button class="act ghost" id="btn_clear">Clear the tracker</button>
@@ -185,14 +186,19 @@ function all(){var r=[];Object.keys(packs).forEach(function(k){r=r.concat(packs[
 function ofType(t){return t==='span'?spans():all().filter(function(r){return r.type===t;});}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
 /* a span can start at the transformer: index transformers by name, poles override */
+/* Pole numbers restart on every transformer, so poles are keyed "TRF|number" */
+function recTrf(r){ return (r&&((r.props&&r.props['TRF_Name'])||r.trf))||''; }
+function custTrf(c){ return c.trf||(c.props&&c.props['TRF_Name'])||''; }
+function normPoleNo(n){ var t=String(n||'').trim(), c=t.replace(/\s+/g,''); if(/^\d+$/.test(c)) return 'P'+c; if(/^p\d+$/i.test(c)) return c.toUpperCase(); return t; }
 function poleIndex(){var i={};all().filter(function(r){return r.type==='trf';}).forEach(function(t){var n=(t.props['TRF_Name']||'').trim();if(n)i[n]=t;});
-  all().filter(function(r){return r.type==='pole';}).forEach(function(p){i[p.props['Pole_Numbe']]=p;});return i;}
+  all().filter(function(r){return r.type==='pole';}).forEach(function(p){i[recTrf(p)+'|'+p.props['Pole_Numbe']]=p;});return i;}
+function lk(idx,n,t){ return idx[(t||'')+'|'+normPoleNo(n)] || idx['|'+normPoleNo(n)] || idx[String(n||'').trim()] || null; }
 function spans(){
   var idx=poleIndex(), out=[];
   all().filter(function(r){return r.type==='pole';}).forEach(function(p){
     var from=p.props['From_Pole']; if(!from) return;
-    var a=idx[from]; if(!a) return;
-    out.push({Span_ID:from+'-'+p.props['Pole_Numbe'],From_Pole:from,To_Pole:p.props['Pole_Numbe'],
+    var a=lk(idx,from,recTrf(p)); if(!a) return;
+    out.push({Span_ID:from+'-'+p.props['Pole_Numbe'],TRF:recTrf(p),From_Pole:from,To_Pole:p.props['Pole_Numbe'],
       Conductor:p.props['Conductor']||'',Length_m:dist(a,p),from:a,pole:p});
   });
   return out;
@@ -223,7 +229,10 @@ function handle(files){
       try{
         var p=JSON.parse(rd.result);
         if(!p.records||!p.agent) throw 0;
-        packs[p.agent.code||f.name]=p; ok++;
+        var k=p.agent.code||p.agent.name||f.name, old=packs[k];
+        if(old&&old.records){ var byId={}; old.records.forEach(function(r){byId[r.id]=r;}); p.records.forEach(function(r){byId[r.id]=r;});
+          p.records=Object.keys(byId).map(function(i){return byId[i];}); p.count=p.records.length; }
+        packs[k]=p; ok++;
       }catch(e){ bad.push(f.name); }
       if(++done===files.length){ save(); render();
         $('#loadinfo').textContent=ok+' file'+(ok===1?'':'s')+' loaded'+(bad.length?', could not read: '+bad.join(', '):'');
@@ -312,15 +321,14 @@ function summary(){
   var codes=Object.keys(packs).filter(function(c){return !sel.value||zoneOf(c)===sel.value;});
   var R=[]; codes.forEach(function(c){R=R.concat(packs[c].records||[]);});
   var P=R.filter(function(r){return r.type==='pole';}), C=R.filter(function(r){return r.type==='cust';});
-  var keep={}; P.forEach(function(p){keep[p.props['Pole_Numbe']]=1;});
-  var S=spans().filter(function(sp){return keep[sp.To_Pole];});
+  var S=spans().filter(function(sp){return P.indexOf(sp.pole)>=0;});
   var svc={},cond={},cls={},asm={},typ={};
   C.forEach(function(c){
     var s=c.props['Service_Cable']||'not recorded';
     svc[s]=(svc[s]||0)+(num(c.props['REAL LENGTH OF SERVICE CABLE'])||0);
     var t=c.props['TYPE OF CUSTOMMER']||'not recorded'; typ[t]=(typ[t]||0)+1;
   });
-  S.forEach(function(s){var c=s.props.Conductor||'not recorded'; cond[c]=(cond[c]||0)+(num(s.props.Length_m)||0);});
+  S.forEach(function(s){var c=s.Conductor||'not recorded'; cond[c]=(cond[c]||0)+(num(s.Length_m)||0);});
   P.forEach(function(p){var c=p.props['Wooden_Pol']||'not recorded'; cls[c]=(cls[c]||0)+1;
     var a=p.props['Assembly']||'not recorded'; asm[a]=(asm[a]||0)+1;});
   function sum(o){var t=0;for(var k in o)t+=o[k];return t;}
@@ -372,12 +380,14 @@ function computeIssues(){
   var out=[], A=all();
   var P=A.filter(function(r){return r.type==='pole';}), C=A.filter(function(r){return r.type==='cust';}), S=spans();
   function add(m,who,hard,code){out.push([m,who||'',hard?1:0,code||'']);}
-  var byNo={}; P.forEach(function(p){var n=p.props['Pole_Numbe'];(byNo[n]=byNo[n]||[]).push(p);});
+  var byNo={}; P.forEach(function(p){var n=recTrf(p)+'|'+p.props['Pole_Numbe'];(byNo[n]=byNo[n]||[]).push(p);});
+  var PIDX=poleIndex();
 
   Object.keys(byNo).forEach(function(n){
     var g=byNo[n]; if(g.length<2) return;
     var ags={}; g.forEach(function(p){ags[p.agent]=1;});
     var codes=Object.keys(ags);
+    n=n.split('|')[1]+' ('+(n.split('|')[0]||'no TRF')+')';
     if(codes.length>1) add('Pole '+n+' was captured by '+codes.join(' and ')+'. Only one should keep it.',codes.join(', '),1,codes[0]);
     else add('Pole '+n+' is captured '+g.length+' times by '+codes[0]+'.',codes[0],1,codes[0]);
   });
@@ -392,12 +402,12 @@ function computeIssues(){
     if(dist(P[i],P[j])<3) add('Two poles less than 3 m apart: '+P[i].props['Pole_Numbe']+' ('+P[i].agent+') and '+P[j].props['Pole_Numbe']+' ('+P[j].agent+'). Likely the same pole captured twice.',P[i].agent+', '+P[j].agent,1,P[i].agent);
   }
   C.forEach(function(c){
-    var p=byNo[c.props['POLES']]&&byNo[c.props['POLES']][0];
+    var bk=custTrf(c)+'|'+normPoleNo(c.props['POLES']), p=byNo[bk]&&byNo[bk][0];
     if(!p){ add('Customer '+c.props['HSE No.']+' points to pole '+(c.props['POLES']||'(blank)')+', which is in nobody\u2019s file.',c.agent,1,c.agent); return; }
     var h=num(c.props['Horizontal distance of cable from pole to house']), d=dist(p,c);
     if(h!==null&&Math.abs(d-h)>15) add('Customer '+c.props['HSE No.']+': '+h.toFixed(1)+' m measured, '+d.toFixed(1)+' m between the coordinates.',c.agent,1,c.agent);
     if(c.props['ID']&&!/^1\d{15}$/.test(c.props['ID'])) add('Customer '+c.props['HSE No.']+': malformed national ID.',c.agent,1,c.agent);
-    if(c.props['Phone_number']&&!/^7[2389]\d{7}$/.test(c.props['Phone_number'])) add('Customer '+c.props['HSE No.']+': malformed phone number.',c.agent,0,c.agent);
+    if(c.props['Phone_number']&&!/^0?7[2389]\d{7}$/.test(c.props['Phone_number'])) add('Customer '+c.props['HSE No.']+': malformed phone number.',c.agent,0,c.agent);
     if(!c.props['UPI']) add('Customer '+c.props['HSE No.']+': UPI missing.',c.agent,0,c.agent);
     if(p.props['Earthing']!=='1') add('Pole '+p.props['Pole_Numbe']+' carries service connections but is not earthed.',p.agent,1,p.agent);
   });
@@ -408,7 +418,7 @@ function computeIssues(){
   });
   P.forEach(function(p){
     var f=p.props['From_Pole'];
-    if(f&&!poleIndex()[f]) add('Pole '+p.props['Pole_Numbe']+' is strung from '+f+', which is in nobody\u2019s file.',p.agent,1,p.agent);
+    if(f&&!lk(PIDX,f,recTrf(p))) add('Pole '+p.props['Pole_Numbe']+' is strung from '+f+', which is in nobody\u2019s file.',p.agent,1,p.agent);
   });
   A.forEach(function(r){ if(!r.manual&&r.acc>10)
     add(LBL[r.type]+' '+(r.props['Pole_Numbe']||r.props['HSE No.']||r.props['Span_ID']||'')+' captured at \u00B1'+r.acc.toFixed(1)+' m.',r.agent,0,r.agent); });
@@ -430,7 +440,7 @@ function rowFor(type,r,poleIndex){
   var p=r.props, d=locDate(r.time), h=locTime(r.time);
   var LOC=['District','Sector','Cell','Village'].map(function(k){return p[k];});
   if(type==='cust'){
-    var pole=poleIndex[p['POLES']];
+    var pole=lk(poleIndex,p['POLES'],custTrf(r));
     return [p['POLES'], pole?pole.x.toFixed(8):'', pole?pole.y.toFixed(8):'', p['HSE No.'],
       p['Horizontal distance of cable from pole to house'], p['Distance source'], p['REAL LENGTH OF SERVICE CABLE'],
       p['FIRST NAME'], p['Second Name'], p['Category'], p['TYPE OF CUSTOMMER'], p['Phase'], r.x.toFixed(8), r.y.toFixed(8),
@@ -444,19 +454,17 @@ function rowFor(type,r,poleIndex){
   return ['TRF_Name','MV_Feeder','Pole_Number','Capacity_kVA','Phases','Support','Serial_No','Primary_kV','LV_CB_Amp','MV_Fuse_A','MV_Earth_Ohm','LV_Earth_Ohm','Manufacturer','Year'].map(function(k){return p[k];})
     .concat([r.x.toFixed(8),r.y.toFixed(8),p['Notes']]).concat(LOC).concat([r.agent,d,h,photoStamp(r),accStamp(r)]);
 }
-var P2_CUST_HEADER=['NO','Pole N0','HOUSE NO','Cable Length','First Name','Last Name',
-  'Village','Cell','Sector','Category','ID','Meter Number','UPI/No Parcel','phone number',
-  'Phase','Transformer','Surveyor','Comment'];
+var P2_CUST_HEADER=['NO','Pole N0','HOUSE NO','Real length','NAME','SURNAME','Village','CELL','SECTOR','CATEGORY','PHASE',
+  'ID','Meter Number','UPI/No Parcel','Telephone','Transformer','X (TM Rwanda)','Y (TM Rwanda)','Pole in list','Cable in list (m)','Surveyor','Comment'];
 function expP2Cust(){
   function q(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
-  var rows=ofType('cust').map(function(r,i){ var p=r.props;
-    var trf=''; try{ var pk=Object.keys(packs).filter(function(c){return (packs[c].records||[]).indexOf(r)>=0;})[0]; trf=pk&&packs[pk].zone?packs[pk].zone.trf:''; }catch(e){}
+  var rows=ofType('cust').slice().sort(function(a,b){return custTrf(a).localeCompare(custTrf(b));}).map(function(r,i){ var p=r.props;
     return [String(i+1), p['POLES'], p['HSE No.'], p['REAL LENGTH OF SERVICE CABLE'],
-      p['FIRST NAME'], p['Second Name'], p['Village'], p['Cell'], p['Sector'],
-      p['Category']||p['TYPE OF CUSTOMMER'], p['ID'], p['Meter_number'], p['UPI'], p['Phone_number'],
-      p['Phase']||p['Meter Type'], trf, r.agent, p['Comment']||''].map(q).join(',');
+      String(p['Second Name']||'').toUpperCase(), p['FIRST NAME'], p['Village'], p['Cell'], p['Sector'],
+      p['Category']||p['TYPE OF CUSTOMMER'], p['Phase']||p['Meter Type'], p['ID'], p['Meter_number'], p['UPI'], p['Phone_number'],
+      custTrf(r), r.x.toFixed(2), r.y.toFixed(2), p['Pole_in_list']||'', p['Length_in_list']||'', r.agent, p['Comment']||''].map(q).join(',');
   });
-  dl('MERGED_CustomerList_'+stamp()+'.csv','sep=,\n'+P2_CUST_HEADER.map(q).join(',')+'\n'+rows.join('\n'),'text/csv');
+  dl('MERGED_CustomerList_Lot2_'+stamp()+'.csv','sep=,\n'+P2_CUST_HEADER.map(q).join(',')+'\n'+rows.join('\n'),'text/csv');
 }
 function merge(){
   $('#expbtns').innerHTML=Object.keys(LBL).map(function(t){
@@ -528,7 +536,7 @@ function buildKMLall(){
   var poles=P.filter(function(r){return r.type==='pole';});
   var custs=P.filter(function(r){return r.type==='cust';});
   var trfs=P.filter(function(r){return r.type==='trf';});
-  var parts=['<?xml version="1.0" encoding="UTF-8"?>','<kml xmlns="http://www.opengis.net/kml/2.2"><Document>','<name>Voltline all surveyors</name>'];
+  var parts=['<?xml version="1.0" encoding="UTF-8"?>','<kml xmlns="http://www.opengis.net/kml/2.2"><Document>','<name>Voltline \u2014 all surveyors</name>'];
   parts.push('<Style id="pole"><IconStyle><color>ff759b8b</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>');
   parts.push('<Style id="trf"><IconStyle><color>ff2b3ad9</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/electronics.png</href></Icon></IconStyle></Style>');
   parts.push('<Style id="cust"><IconStyle><color>ff5b7912</color><scale>0.8</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/homegardenbusiness.png</href></Icon></IconStyle></Style>');
@@ -547,7 +555,7 @@ function buildKMLall(){
   parts.push('</Folder></Document></kml>');
   return parts.join('\n');
 }
-$('#ex_backup').onclick=function(){ dl('WKDC_backup_'+stamp()+'.json', JSON.stringify(packs), 'application/json'); };
+$('#ex_backup').onclick=function(){ dl('Voltline_tracker_backup_'+stamp()+'.json', JSON.stringify(packs), 'application/json'); };
 document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='ex_kml_all'){
     if(!all().length){ alert('No data loaded yet'); return; }
@@ -559,8 +567,7 @@ function summaryRows(){
   var codes=Object.keys(packs).filter(function(c){return !sel.value||zoneOf(c)===sel.value;});
   var R=[]; codes.forEach(function(c){R=R.concat(packs[c].records||[]);});
   var P=R.filter(function(r){return r.type==='pole';}), C=R.filter(function(r){return r.type==='cust';});
-  var keep={}; P.forEach(function(p){keep[p.props['Pole_Numbe']]=1;});
-  var S=spans().filter(function(sp){return keep[sp.To_Pole];});
+  var S=spans().filter(function(sp){return P.indexOf(sp.pole)>=0;});
   var svc={},cond={},cls={},asm={},typ={};
   C.forEach(function(c){ svc[c.props['Service_Cable']||'not recorded']=(svc[c.props['Service_Cable']||'not recorded']||0)+(num(c.props['REAL LENGTH OF SERVICE CABLE'])||0);
     typ[c.props['TYPE OF CUSTOMMER']||'not recorded']=(typ[c.props['TYPE OF CUSTOMMER']||'not recorded']||0)+1;});
