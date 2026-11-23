@@ -462,7 +462,7 @@ var TRF_TABLE = {
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-23-v5",
+  BUILD = "2026-11-23-v6",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -1099,7 +1099,8 @@ function capFix(e) {
       if (t.accuracy > GPS.maxAcc) cap.rejAcc++;
       else {
         var n = estimate(cap.fixes);
-        if (n && cap.fixes.length >= 4 && hav(n.lat, n.lng, t.latitude, t.longitude) > Math.max(3 * t.accuracy, 3 * n.prec, 8)) return void cap.rejJump++;
+        if (n && cap.fixes.length >= 4)
+          if (hav(n.lat, n.lng, t.latitude, t.longitude) > Math.max(3 * t.accuracy, 3 * n.prec, 8)) return void cap.rejJump++;
         cap.fixes.push({
           lat: t.latitude,
           lng: t.longitude,
@@ -1379,15 +1380,15 @@ function drawMap() {
     spans().forEach(function(e) {
       var t = e.a,
         n = e.pole;
-      t && n && (h += '<line x1="' + S(t.x).toFixed(1) + '" y1="' + E(t.y).toFixed(1) + '" x2="' + S(n.x).toFixed(1) + '" y2="' + E(n.y).toFixed(1) + '" stroke="#2E5FA3" stroke-width="1.8"/>')
+      t && n && (h += '<line x1="' + S(t.x).toFixed(1) + '" y1="' + b(t.y).toFixed(1) + '" x2="' + S(n.x).toFixed(1) + '" y2="' + b(n.y).toFixed(1) + '" stroke="#2E5FA3" stroke-width="1.8"/>')
     }), records.filter(function(e) {
       return "cust" === e.type
     }).forEach(function(e) {
       var t = custPole(e);
-      t && (h += '<line x1="' + S(e.x).toFixed(1) + '" y1="' + E(e.y).toFixed(1) + '" x2="' + S(t.x).toFixed(1) + '" y2="' + E(t.y).toFixed(1) + '" stroke="#12795B" stroke-width="0.8" opacity="0.5"/>')
+      t && (h += '<line x1="' + S(e.x).toFixed(1) + '" y1="' + b(e.y).toFixed(1) + '" x2="' + S(t.x).toFixed(1) + '" y2="' + b(t.y).toFixed(1) + '" stroke="#12795B" stroke-width="0.8" opacity="0.5"/>')
     }), records.forEach(function(e) {
-      h += '<circle class="mapdot" data-id="' + e.id + '" cx="' + S(e.x).toFixed(1) + '" cy="' + E(e.y).toFixed(1) + '" r="6" fill="' + f[e.type] + '" stroke="#12171B" stroke-width="0.8" style="cursor:pointer"/>'
-    }), fix && (h += '<circle cx="' + S(fix.x).toFixed(1) + '" cy="' + E(fix.y).toFixed(1) + '" r="6" fill="#D98324" stroke="#fff" stroke-width="2"/>');
+      h += '<circle class="mapdot" data-id="' + e.id + '" cx="' + S(e.x).toFixed(1) + '" cy="' + b(e.y).toFixed(1) + '" r="6" fill="' + f[e.type] + '" stroke="#12171B" stroke-width="0.8" style="cursor:pointer"/>'
+    }), fix && (h += '<circle cx="' + S(fix.x).toFixed(1) + '" cy="' + b(fix.y).toFixed(1) + '" r="6" fill="#D98324" stroke="#fff" stroke-width="2"/>');
     var m = l,
       v = m / 4,
       g = Math.pow(10, Math.floor(Math.log10(v))),
@@ -1398,7 +1399,7 @@ function drawMap() {
       }).pop() || g;
     h += '<line x1="14" y1="206" x2="' + (14 + y * u).toFixed(1) + '" y2="206" stroke="#12171B" stroke-width="2"/><text x="14" y="200" fill="#5D6B75" font-size="10" font-family="sans-serif">' + (y >= 1e3 ? y / 1e3 + " km" : y + " m") + "</text>", e.innerHTML = h, Array.prototype.forEach.call(e.querySelectorAll(".mapdot"), function(e) {
       e.onclick = function() {
-        editRecord(e.getAttribute("data-id"))
+        pointTap(e.getAttribute("data-id"))
       }
     }), $("#maplbl").textContent = "· tap a point to edit · " + records.length + " point" + (1 === records.length ? "" : "s") + (fix ? ", spread " + Math.round(Math.max(l, c)) + " m" : "")
   }
@@ -1407,7 +1408,7 @@ function drawMap() {
     return p + (e - r) * u
   }
 
-  function E(e) {
+  function b(e) {
     return 220 - (d + (e - i) * u)
   }
 }
@@ -1647,106 +1648,103 @@ function satAuto() {
   })
 }
 
-function showSat() {
-  $("#satnote").style.display = "block", $("#satnote").textContent = "Loading satellite…", loadLeaflet().then(function(e) {
+function showSat(e) {
+  LMap || ($("#satnote").style.display = "block", $("#satnote").textContent = "Loading satellite…"), loadLeaflet().then(function(t) {
     if ($("#minimap").style.display = "none", $("#satmap").style.display = "block", $("#satnote").style.display = "none", mapBtns(!0), !LMap) {
-      LMap = e.map("satmap", {
+      LMap = t.map("satmap", {
         attributionControl: !1
       });
-      var t = makeSatLayer(e);
-      t.on("tileload", function() {
+      var n = makeSatLayer(t);
+      n.on("tileload", function() {
         1 === ++satOk && ($("#satnote").style.display = "none")
-      }), t.on("tileerror", function() {
+      }), n.on("tileerror", function() {
         satErr++, satDiagShow()
-      }), t.addTo(LMap), LMap.on("dragstart", function() {
+      }), n.addTo(LMap), LMap.on("dragstart", function() {
         followMe && (followMe = !1, locBtnState())
       }), LMap.on("moveend", drawVillagesSat)
     }
-    drawVillagesSat(), LLayer && LMap.removeLayer(LLayer), LLayer = e.layerGroup().addTo(LMap);
-    var n = [];
+    drawVillagesSat(), LLayer && LMap.removeLayer(LLayer), LLayer = t.layerGroup().addTo(LMap);
+    var o = [];
 
-    function o(t, n) {
-      return e.divIcon({
+    function r(e, n) {
+      return t.divIcon({
         className: "",
-        html: '<div style="width:' + n + "px;height:" + n + "px;border-radius:50%;background:" + t + ';border:2px solid #12171B;box-shadow:0 0 0 1px #fff"></div>',
+        html: '<div style="width:' + n + "px;height:" + n + "px;border-radius:50%;background:" + e + ';border:2px solid #12171B;box-shadow:0 0 0 1px #fff"></div>',
         iconSize: [n, n],
         iconAnchor: [n / 2, n / 2]
       })
     }
 
-    function r(t, r, a, i) {
-      var s = e.marker([t.lat, t.lon], {
-        icon: o(a, r),
-        draggable: !0
-      }).addTo(LLayer);
-      s.bindPopup(mapPopup(t, i)), s.on("click", function() {
-        mapIsFull() || editRecord(t.id)
-      }), s.on("dragend", function() {
-        var e = s.getLatLng(),
-          n = toGrid(e.lat, e.lng);
-        lastMove = {
-          id: t.id,
-          lat: t.lat,
-          lon: t.lon,
-          x: t.x,
-          y: t.y,
-          manual: t.manual,
-          adm: [t.props.District, t.props.Sector, t.props.Cell, t.props.Village]
-        };
-        t.lat = e.lat, t.lon = e.lng, t.x = n.x, t.y = n.y, t.manual = !0, t.updatedAt = (new Date).toISOString(), setAdminProps(t.props, n.x, n.y), recomputeDerived(), persist(), drawMap(), badges(), satKeepView = !0, showSat(), showUndoMove(), toast("Moved " + (t.props.Pole_Numbe || t.props["HSE No."] || "point") + " to the new position")
-      }), n.push([t.lat, t.lon])
+    function a(e, n, a, i) {
+      var s = sheetId === e.id,
+        l = t.marker([e.lat, e.lon], {
+          icon: r(s ? "#facc15" : a, s ? n + 6 : n),
+          draggable: moveMode,
+          zIndexOffset: s ? 900 : 0
+        }).addTo(LLayer);
+      mapFs && i && l.bindTooltip(esc(i), {
+        permanent: !0,
+        direction: "right",
+        offset: [n / 2 + 2, 0],
+        className: "ptlbl"
+      }), l.on("click", function() {
+        pointTap(e.id)
+      }), l.on("dragend", function() {
+        var t = l.getLatLng();
+        movePoint(e, t.lat, t.lng)
+      }), o.push([e.lat, e.lon])
     }
-    spans().forEach(function(t) {
-      var n = t.a,
-        o = t.pole;
-      n && o && e.polyline([
+    spans().forEach(function(e) {
+      var n = e.a,
+        o = e.pole;
+      n && o && t.polyline([
         [n.lat, n.lon],
         [o.lat, o.lon]
       ], {
         color: "#2E5FA3",
         weight: 3
       }).addTo(LLayer)
-    }), custs().forEach(function(t) {
-      var n = custPole(t);
-      n && e.polyline([
+    }), custs().forEach(function(e) {
+      var n = custPole(e);
+      n && t.polyline([
         [n.lat, n.lon],
-        [t.lat, t.lon]
+        [e.lat, e.lon]
       ], {
         color: "#12795B",
         weight: 1.5,
         opacity: .7
       }).addTo(LLayer)
     }), poles().forEach(function(e) {
-      r(e, 16, "#EFF2F1", e.props.Pole_Numbe || "pole")
+      a(e, 16, "#EFF2F1", e.props.Pole_Numbe || "pole")
     }), ofType("trf").forEach(function(e) {
-      r(e, 20, "#D93A2B", e.props.TRF_Name || "TRF")
+      a(e, 20, "#D93A2B", e.props.TRF_Name || "TRF")
     }), custs().forEach(function(e) {
-      r(e, 14, "#12795B", e.props["HSE No."] || "HH")
-    }), fix && n.push([fix.lat, fix.lon]);
-    var a = gpsLast || fix;
-    if (satKeepView) satKeepView = !1, setTimeout(function() {
+      a(e, 14, "#12795B", e.props["HSE No."] || "HH")
+    }), fix && o.push([fix.lat, fix.lon]);
+    var i = gpsLast || fix;
+    if (e && satShown) setTimeout(function() {
+      LMap.invalidateSize()
+    }, 60);
+    else if (followMe && i) LMap.setView([i.lat, i.lon], locZoom()), setTimeout(function() {
       LMap.invalidateSize()
     }, 100);
-    else if (followMe && a) LMap.setView([a.lat, a.lon], locZoom()), setTimeout(function() {
-      LMap.invalidateSize()
-    }, 100);
-    else if (n.length) LMap.fitBounds(n, {
+    else if (o.length) LMap.fitBounds(o, {
       padding: [30, 30],
       maxZoom: 19
     }), setTimeout(function() {
       LMap.invalidateSize()
     }, 100);
-    else if (a) LMap.setView([a.lat, a.lon], 17);
+    else if (i) LMap.setView([i.lat, i.lon], 17);
     else {
-      var i = TRF_REF.filter(function(e) {
+      var s = TRF_REF.filter(function(e) {
         return e.n === ctx.trf && null != e.e
       })[0];
-      if (i) {
-        var s = toLatLon(i.e, i.y);
-        LMap.setView([s.lat, s.lon], 17)
+      if (s) {
+        var l = toLatLon(s.e, s.y);
+        LMap.setView([l.lat, l.lon], 17)
       } else LMap.setView("Ngoma" === ctx.district ? [-2.17, 30.47] : [-2.26, 30.7], 11)
     }
-    updateYou(), satDiagShow()
+    satShown = !0, updateYou(), satDiagShow()
   }).catch(function() {
     $("#satnote").style.display = "block", $("#satnote").innerHTML = navigator.onLine ? '<b style="color:var(--live)">The map could not start.</b> Close the app and open it again with internet so it updates. The diagram below still works.' : '<b style="color:var(--live)">Satellite needs internet.</b> No connection now, so the offline diagram is shown. The Google Earth file in the Send tab always works.', $("#minimap").style.display = "block", $("#satmap").style.display = "none"
   })
@@ -1817,6 +1815,142 @@ function drawVillagesSat() {
     }
   }
 }
+var mapFs = !1,
+  moveMode = !1,
+  sheetId = null,
+  lastMove = null,
+  satShown = !1;
+
+function openMapFs() {
+  if (!mapFs) {
+    mapFs = !0, document.body.classList.add("fsmap"), $("#mapcard").classList.add("fs");
+    try {
+      document.documentElement.requestFullscreen && !document.fullscreenElement && document.documentElement.requestFullscreen().catch(function() {})
+    } catch (e) {}
+    try {
+      history.pushState({
+        fsmap: 1
+      }, "")
+    } catch (e) {}
+    fsButtons(), !satVisible() && navigator.onLine, showSat(!0), setTimeout(function() {
+      LMap && LMap.invalidateSize()
+    }, 120), setTimeout(function() {
+      LMap && LMap.invalidateSize()
+    }, 500)
+  }
+}
+
+function closeMapFs(e) {
+  if (mapFs) {
+    mapFs = !1, sheetId = null, document.body.classList.remove("fsmap"), $("#mapcard").classList.remove("fs"), hideSheet();
+    try {
+      document.fullscreenElement && document.exitFullscreen && document.exitFullscreen().catch(function() {})
+    } catch (e) {}
+    if (!e) try {
+      history.state && history.state.fsmap && history.back()
+    } catch (e) {}
+    fsButtons(), satVisible() ? showSat(!0) : drawMap(), setTimeout(function() {
+      LMap && LMap.invalidateSize()
+    }, 150)
+  }
+}
+
+function toggleMove() {
+  moveMode = !moveMode, fsButtons(), satVisible() && showSat(!0), toast(moveMode ? "Move points: ON — drag a point to its true position" : "Points locked")
+}
+
+function fsButtons() {
+  var e = $("#btn_fs");
+  e && (e.textContent = mapFs ? "✕ Close" : "⛶ Full screen", e.setAttribute("aria-pressed", mapFs ? "true" : "false"));
+  var t = $("#btn_move");
+  t && (t.textContent = moveMode ? "✋ Moving: ON" : "🔒 Move points", t.setAttribute("aria-pressed", moveMode ? "true" : "false"));
+  var n = $("#btn_undo");
+  n && n.classList.toggle("hidden", !lastMove)
+}
+
+function movePoint(e, t, n) {
+  lastMove = {
+    id: e.id,
+    lat: e.lat,
+    lon: e.lon,
+    x: e.x,
+    y: e.y,
+    manual: e.manual,
+    adm: ["District", "Sector", "Cell", "Village"].map(function(t) {
+      return e.props[t]
+    })
+  };
+  var o = toGrid(t, n);
+  e.lat = t, e.lon = n, e.x = o.x, e.y = o.y, e.manual = !0, setAdminProps(e.props, o.x, o.y), e.updatedAt = (new Date).toISOString(), e.editedBy = agent.name, recomputeDerived(), persist(), drawMap(), badges(), fsButtons(), showSat(!0), sheetId === e.id && showSheet(e.id), toast("Moved " + nameOf(e) + " — ↶ Undo is on the map bar"), "function" == typeof syncSoon && syncSoon()
+}
+
+function undoMove() {
+  if (lastMove) {
+    var e = records.filter(function(e) {
+      return e.id === lastMove.id
+    })[0];
+    if (!e) return lastMove = null, void fsButtons();
+    e.lat = lastMove.lat, e.lon = lastMove.lon, e.x = lastMove.x, e.y = lastMove.y, e.manual = lastMove.manual, ["District", "Sector", "Cell", "Village"].forEach(function(t, n) {
+      e.props[t] = lastMove.adm[n]
+    }), e.updatedAt = (new Date).toISOString(), lastMove = null, recomputeDerived(), persist(), drawMap(), fsButtons(), showSat(!0), sheetId === e.id && showSheet(e.id), toast("Move undone"), "function" == typeof syncSoon && syncSoon()
+  }
+}
+
+function pointTap(e) {
+  mapFs ? showSheet(e) : editRecord(e)
+}
+
+function hideSheet() {
+  var e = $("#mapsheet");
+  e && e.classList.add("hidden");
+  var t = sheetId;
+  sheetId = null, t && satVisible() && showSat(!0)
+}
+
+function showSheet(e) {
+  var t = records.filter(function(t) {
+      return t.id === e
+    })[0],
+    n = $("#mapsheet");
+  if (t && n) {
+    var o = sheetId !== e;
+    sheetId = e;
+    var r = t.props,
+      a = recTrf(t) || custTrf(t),
+      i = [];
+    "pole" === t.type ? (d("Transformer", a), d("Span (m)", r.Span_Length_m), d("Conductor", r.Conductor), d("Assembly", r.Assembly), d("Pole class", r.Wooden_Pol)) : "cust" === t.type ? (d("Name", [r["FIRST NAME"], r["Second Name"]].filter(Boolean).join(" ")), d("Meter", r.Meter_number), d("Cable (m)", r["REAL LENGTH OF SERVICE CABLE"]), d("Pole in list", r.Pole_in_list), d("Transformer", a)) : (d("Capacity (kVA)", r.Capacity_kVA), d("Support", r.Support)), d("Village", [r.Cell, r.Village].filter(Boolean).join(" › ")), d("Position", (t.manual ? "moved on map" : "±" + Number(t.acc || 0).toFixed(1) + " m") + " · " + locDate(t.time));
+    var s = "";
+    if ("pole" === t.type || "cust" === t.type) {
+      var l = "pole" === t.type ? "From_Pole" : "POLES",
+        c = normPoleNo(r[l]) || r[l] || "",
+        u = zonePoles(a).map(function(e) {
+          return e.props.Pole_Numbe
+        }).filter(function(e) {
+          return e && e !== r.Pole_Numbe
+        });
+      u = "pole" === t.type ? [a].concat(u.reverse()) : u.reverse(), c && u.indexOf(c) < 0 && u.unshift(c), s = '<label for="sh_link">' + ("pole" === t.type ? "Fed from (span)" : "Supply pole") + '</label><select id="sh_link">' + ("pole" === t.type ? '<option value="">Start of a line</option>' : '<option value="">—</option>') + u.map(function(e) {
+        return "<option" + (e === c ? " selected" : "") + ">" + esc(e) + "</option>"
+      }).join("") + "</select>"
+    }
+    n.innerHTML = '<div class="shh"><span class="tag" style="color:' + (CHIP_COLOR[t.type] || "#334155") + '">' + esc(SCHEMA[t.type].label) + "</span><b>" + esc(t.props[SCHEMA[t.type].id] || "") + '</b><button class="shx" onclick="hideSheet()" aria-label="Close">✕</button></div><div class="shrows">' + i.join("") + "</div>" + s + '<div class="btn-row" style="margin-top:10px"><button class="act ghost" onclick="var i=sheetId;closeMapFs();editRecord(i)">✎ All details</button><button class="act" onclick="zoomTo(\'' + esc(e) + "')\">⌖ Zoom here</button></div>", n.classList.remove("hidden");
+    var p = $("#sh_link");
+    p && (p.onchange = function() {
+      var e = "pole" === t.type ? "From_Pole" : "POLES";
+      t.props[e] = p.value, "cust" === t.type && !1 === /tape/i.test(t.props["Distance source"] || "") && (t.props["Distance source"] = "GPS"), t.updatedAt = (new Date).toISOString(), t.editedBy = agent.name, recomputeDerived(), persist(), drawMap(), showSat(!0), showSheet(t.id), toast(("pole" === t.type ? "Fed from " : "Supply pole ") + (p.value || "—") + " — saved"), "function" == typeof syncSoon && syncSoon()
+    }), o && satVisible() && showSat(!0)
+  }
+
+  function d(e, t) {
+    null != t && "" !== t && i.push("<div><span>" + esc(e) + "</span><b>" + esc(t) + "</b></div>")
+  }
+}
+
+function zoomTo(e) {
+  var t = records.filter(function(t) {
+    return t.id === e
+  })[0];
+  t && LMap && LMap.setView([t.lat, t.lon], Math.max(LMap.getZoom(), 19))
+}
 
 function mapBtns(e) {
   var t = $("#mapSat"),
@@ -1830,7 +1964,7 @@ function satVisible() {
 }
 
 function refreshSat() {
-  satVisible() && showSat()
+  satVisible() && showSat(!0)
 }
 
 function showDiagram() {
@@ -1860,10 +1994,13 @@ function captureDraft() {
 function hasUnsaved() {
   for (var e = SCHEMA[active], t = 0; t < e.fields.length; t++) {
     var n = e.fields[t];
-    if ("photo" !== n.t && "calc" !== n.t && n.k !== e.id && !n.ctx && "" !== gv(n.k)) return !0
+    if ("photo" !== n.t && "calc" !== n.t && n.k !== e.id && (!n.ctx && "" !== gv(n.k))) return !0
   }
   return !1
 }
+addEventListener("popstate", function() {
+  mapFs && closeMapFs(!0)
+});
 var CHIP_ICON = {
   pole: '<svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M6 7h12"/><path d="M8 11h8"/><path d="M9 21l3-4 3 4"/></svg>',
   cust: '<svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>',
@@ -1992,9 +2129,9 @@ function fieldHtml(e, t, n) {
     if (y.length <= 3 && y.every(function(e) {
         return String(e).length <= 14
       })) {
-      var E = "STAY_ASSEM" === e.k;
+      var b = "STAY_ASSEM" === e.k;
       return '<div class="' + c + '">' + l + '<input type="hidden" id="' + i + '" value="' + esc(o) + '"><div class="opts seg" data-for="' + i + '">' + y.map(function(e) {
-        var t = S ? "1" === e ? "Yes" : "No" : E && "0" === e ? "None" : e;
+        var t = S ? "1" === e ? "Yes" : "No" : b && "0" === e ? "None" : e;
         return '<button type="button" class="opt" data-v="' + esc(e) + '" aria-pressed="' + (e === o) + '">' + esc(t) + "</button>"
       }).join("") + "</div></div>"
     }
@@ -2005,12 +2142,12 @@ function fieldHtml(e, t, n) {
   }
   if (e.auto) return '<div class="' + c + '">' + l + '<input id="' + i + '" readonly tabindex="-1" style="background:var(--paper);font-weight:700" value="' + esc(o) + '"></div>';
   if ("Pole_Numbe" === e.k) {
-    var b = {};
+    var E = {};
     zonePoles().forEach(function(e) {
-      b[e.props.Pole_Numbe] = 1
+      E[e.props.Pole_Numbe] = 1
     });
     var x = rosterPoles().filter(function(e) {
-      return !b[e]
+      return !E[e]
     });
     return '<div class="' + c + '">' + l + '<input id="' + i + '" autocapitalize="characters" autocomplete="off" list="' + i + '_dl" value="' + esc(o) + '"><datalist id="' + i + '_dl">' + x.map(function(e) {
       return '<option value="' + esc(e) + '">'
@@ -2120,12 +2257,12 @@ function importRoster(e) {
     for (var i = t[n].map(mapHeader), s = 0, l = n + 1; l < t.length; l++) {
       var c = {},
         u = !1;
-      t[l].forEach(function(e, t) {
-        var n = i[t];
-        n && "" !== String(e).trim() && (c[n] = String(e).trim(), u = !0)
-      }), u && (c.house || c.id || c.meter || c.first) && (c.id && roster.some(function(e) {
+      if (t[l].forEach(function(e, t) {
+          var n = i[t];
+          n && "" !== String(e).trim() && (c[n] = String(e).trim(), u = !0)
+        }), u && (c.house || c.id || c.meter || c.first)) c.id && roster.some(function(e) {
         return e.id === c.id
-      }) || (roster.push(c), s++))
+      }) || (roster.push(c), s++)
     }
     persist(), renderRosterInfo(), "function" == typeof renderSetupSelects && renderSetupSelects(), "function" == typeof updateSetup && updateSetup(), toast(s + " customers loaded"), "cust" === active && renderForm()
   }
@@ -2215,25 +2352,25 @@ function renderPicker() {
   if (e)
     if ("cust" === active) {
       if (selectedCust) {
-        var t = selectedCust,
-          n = [
-            ["House no", t.house],
-            ["Pole in list", normPoleNo(t.pole)],
-            ["Cable in list (m)", t.length],
-            ["Category", (a = t.category, a ? (a = a.toUpperCase(), /COMMERC/.test(a) ? "COMMERCIAL" : /NON/.test(a) ? "NON RESIDENTIAL" : /INDUS/.test(a) ? "INDUSTRIAL" : /PUBLIC|INSTIT/.test(a) ? "PUBLIC INSTITUTION" : "RESIDENTIAL") : "")],
-            ["Phase", (r = t.phase, r ? /3|THREE|TRI/.test(r.toUpperCase()) ? "THREE PHASE" : "SINGLE PHASE" : "")],
-            ["National ID", t.id],
-            ["Meter", t.meter],
-            ["UPI / parcel", t.upi],
-            ["Phone", t.phone],
-            ["Village", t.village],
-            ["Cell", t.cell],
-            ["Sector", t.sector]
-          ].filter(function(e) {
-            return e[1]
-          }).map(function(e) {
-            return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(0,0,0,.08)"><span style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--steel)">' + esc(e[0]) + '</span><span style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:right;word-break:break-word">' + esc(e[1]) + "</span></div>"
-          }).join("");
+        var t = selectedCust;
+        var n = [
+          ["House no", t.house],
+          ["Pole in list", normPoleNo(t.pole)],
+          ["Cable in list (m)", t.length],
+          ["Category", (a = t.category, a ? (a = a.toUpperCase(), /COMMERC/.test(a) ? "COMMERCIAL" : /NON/.test(a) ? "NON RESIDENTIAL" : /INDUS/.test(a) ? "INDUSTRIAL" : /PUBLIC|INSTIT/.test(a) ? "PUBLIC INSTITUTION" : "RESIDENTIAL") : "")],
+          ["Phase", (r = t.phase, r ? /3|THREE|TRI/.test(r.toUpperCase()) ? "THREE PHASE" : "SINGLE PHASE" : "")],
+          ["National ID", t.id],
+          ["Meter", t.meter],
+          ["UPI / parcel", t.upi],
+          ["Phone", t.phone],
+          ["Village", t.village],
+          ["Cell", t.cell],
+          ["Sector", t.sector]
+        ].filter(function(e) {
+          return e[1]
+        }).map(function(e) {
+          return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(0,0,0,.08)"><span style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--steel)">' + esc(e[0]) + '</span><span style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:right;word-break:break-word">' + esc(e[1]) + "</span></div>"
+        }).join("");
         e.innerHTML = '<div style="border:1px solid var(--rule);border-radius:4px;margin-bottom:12px;overflow:hidden"><div style="background:var(--earth);color:#fff;padding:12px"><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.85">Selected customer — all details from the list</div><div style="font-weight:800;font-size:18px;margin-top:2px">' + esc([t.first, t.last].filter(Boolean).join(" ") || t.house || "customer") + '</div></div><div style="padding:4px 12px 10px">' + n + '<button class="act ghost" id="btn_changecust" style="margin-top:10px;padding:10px">Change customer</button></div></div><p class="note" style="margin:0 0 10px">Now choose the supply pole below, stand at the meter, and Save. The cable length fills itself.</p>';
         var o = $("#btn_changecust");
         return void(o && (o.onclick = function() {
@@ -2326,7 +2463,7 @@ function renderForm(e) {
   var r = [];
   "cust" === active && (r = ["District", "Sector", "Cell", "Village", "Distance source", "TYPE OF CUSTOMMER", "Meter Type", "READYBOARD", "Pole_in_list", "Length_in_list"], selectedCust && (r = r.concat(["HSE No.", "FIRST NAME", "Second Name", "Category", "Phase", "Meter_number", "ID", "UPI", "Phone_number"])));
   var a = t.fields.filter(function(e) {
-      return !("pole" === active && "TRF_Name" === e.k || r.indexOf(e.k) >= 0)
+      return ("pole" !== active || "TRF_Name" !== e.k) && !(r.indexOf(e.k) >= 0)
     }),
     i = (SECTIONS[active] || []).map(function(e) {
       return {
@@ -2595,20 +2732,20 @@ $("#btn_save").onclick = function() {
       }
     } else {
       toast("Capture the position first (🛰 Capture position)");
-      var E = $("#capBtn");
-      if (E) try {
-        E.scrollIntoView({
+      var b = $("#capBtn");
+      if (b) try {
+        b.scrollIntoView({
           block: "center"
         })
       } catch (e) {}
     }
   else {
     toast("Choose the transformer of this customer first (zone above)");
-    var b = $("#setup");
-    if (b) {
-      b.setAttribute("open", "");
+    var E = $("#setup");
+    if (E) {
+      E.setAttribute("open", "");
       try {
-        b.scrollIntoView({
+        E.scrollIntoView({
           block: "start"
         })
       } catch (e) {}
@@ -2648,7 +2785,6 @@ function dupNear(e) {
 }
 
 function editRecord(e) {
-  closeMapFull();
   var t = records.filter(function(t) {
     return t.id === e
   })[0];
@@ -2672,8 +2808,9 @@ function renderRecords() {
       return (!e || n.type === e) && (!t || JSON.stringify(n.props).toLowerCase().indexOf(t) >= 0)
     }).slice().reverse();
   n.length ? ($("#reclist").innerHTML = n.map(function(e) {
-    var t, n = SCHEMA[e.type];
-    return t = "cust" === e.type ? [e.props["FIRST NAME"], e.props["Second Name"]].filter(Boolean).join(" ") + " · " + (e.props.POLES || "") : "span" === e.type ? e.props.From_Pole + " → " + e.props.To_Pole + " · " + (e.props.Length_m || "?") + " m" : e.props.Assembly || e.props.Capacity_kVA || "", '<div class="rec" style="--c:' + n.color + '"><div class="tag">' + n.label + '</div><div class="id">' + esc(e.props[n.id] || "(no number)") + '</div><div class="note" style="margin-top:2px">' + esc(t) + '</div><div class="meta">' + locDate(e.time) + " " + locTime(e.time) + " · X " + e.x.toFixed(1) + " · Y " + e.y.toFixed(1) + " · " + (e.manual ? "typed" : "±" + (e.acc || 0).toFixed(1) + "m") + "</div>" + (e.photo ? '<img data-pid="' + esc(e.id) + '" class="thumb" alt="">' : "") + '<div class="tools"><button data-ed="' + e.id + '">Edit</button><button data-del="' + e.id + '">Delete</button></div></div>'
+    var t = SCHEMA[e.type],
+      n = "";
+    return n = "cust" === e.type ? [e.props["FIRST NAME"], e.props["Second Name"]].filter(Boolean).join(" ") + " · " + (e.props.POLES || "") : "span" === e.type ? e.props.From_Pole + " → " + e.props.To_Pole + " · " + (e.props.Length_m || "?") + " m" : e.props.Assembly || e.props.Capacity_kVA || "", '<div class="rec" style="--c:' + t.color + '"><div class="tag">' + t.label + '</div><div class="id">' + esc(e.props[t.id] || "(no number)") + '</div><div class="note" style="margin-top:2px">' + esc(n) + '</div><div class="meta">' + locDate(e.time) + " " + locTime(e.time) + " · X " + e.x.toFixed(1) + " · Y " + e.y.toFixed(1) + " · " + (e.manual ? "typed" : "±" + (e.acc || 0).toFixed(1) + "m") + "</div>" + (e.photo ? '<img data-pid="' + esc(e.id) + '" class="thumb" alt="">' : "") + '<div class="tools"><button data-ed="' + e.id + '">Edit</button><button data-del="' + e.id + '">Delete</button></div></div>'
   }).join(""), Array.prototype.forEach.call($("#reclist").querySelectorAll("img[data-pid]"), function(e) {
     var t = e.getAttribute("data-pid"),
       n = THUMBS[t];
@@ -3343,7 +3480,7 @@ function shpFiles(e, t) {
   var u = custs().filter(function(e) {
     return custPole(e)
   });
-  return a.concat(shpLayer(e, "Service_Cable", 3, u.map(function(e) {
+  return a = a.concat(shpLayer(e, "Service_Cable", 3, u.map(function(e) {
     var t = custPole(e);
     return [
       [t.x, t.y],
@@ -3619,16 +3756,16 @@ async function storageInfo() {
   if (e) {
     var t = records.length + " points on this phone.";
     try {
-      navigator.storage && navigator.storage.estimate && (t += " Storage used: " + ((await navigator.storage.estimate()).usage / 1048576).toFixed(1) + " MB.")
+      if (navigator.storage && navigator.storage.estimate) t += " Storage used: " + ((await navigator.storage.estimate()).usage / 1048576).toFixed(1) + " MB."
     } catch (e) {}
     try {
-      navigator.storage && navigator.storage.persist && await navigator.storage.persist() && (t += " Protected from automatic clean-up.")
+      if (navigator.storage && navigator.storage.persist) await navigator.storage.persist() && (t += " Protected from automatic clean-up.")
     } catch (e) {}
     e.textContent = t
   }
 }
 var SYNC_URL_DEFAULT = "",
-  SYNC_TOKEN = "wklvnyz-7Qm2Xc9TfR4pLs8VdK3w",
+  SYNC_TOKEN = "voltline-lot2-BGl9Xupb46NuUjF-7mv2gqUA",
   SYNC_URL_KEY = "voltline-sync-url",
   DEL_KEY = "voltline-sync-deletes",
   syncBusy = !1,
@@ -3747,6 +3884,7 @@ async function syncNow(e) {
           id: e.id,
           type: e.type,
           trf: recTrf(e) || custTrf(e),
+          district: e.props.District || ctx.district || "",
           header: HEADERS[e.type].concat(["Latitude", "Longitude", "Edited by", "Updated (phone)"]),
           row: rowFor(e.type, e).concat([e.lat.toFixed(8), e.lon.toFixed(8), e.editedBy || "", n]).map(function(e) {
             return null == e ? "" : String(e)
@@ -3995,8 +4133,8 @@ function parseIdText(e) {
   var t = String(e || "").split(/\r?\n/).map(function(e) {
       return e.trim()
     }).filter(Boolean),
-    n = {},
-    o = [];
+    n = {};
+  var o = [];
   t.forEach(function(e, n) {
     o.push(e.replace(/\D/g, "")),
       function(e) {
@@ -4136,9 +4274,10 @@ function renderSetupSelects() {
     }));
     e.innerHTML = '<option value="">All sectors</option>' + r.map(function(e) {
       var t = trfsOfSector(e).length;
-      return trfsOfSector(e).filter(function(e) {
+      trfsOfSector(e).filter(function(e) {
         return rosterCount(e.n)
-      }).length, '<option value="' + esc(e) + '"' + (e === ctx.sector ? " selected" : "") + ">" + esc(e) + " · " + t + " transformer" + (t > 1 ? "s" : "") + "</option>"
+      }).length;
+      return '<option value="' + esc(e) + '"' + (e === ctx.sector ? " selected" : "") + ">" + esc(e) + " · " + t + " transformer" + (t > 1 ? "s" : "") + "</option>"
     }).join("");
     var a = trfsOfSector(ctx.sector).slice().sort(function(e, t) {
       return (rosterCount(e.n) ? 0 : 1) - (rosterCount(t.n) ? 0 : 1) || e.n.localeCompare(t.n)
@@ -4198,77 +4337,3 @@ idbOpen().then(function(e) {
     }, 1600)
   }
 });
-/* ================== full-screen map ================== */
-var satKeepView = !1,
-  lastMove = null,
-  undoTimer = null;
-
-function mapIsFull() {
-  var e = $("#mapcard");
-  return !!e && e.classList.contains("mapfull")
-}
-
-function mapPopup(t, i) {
-  return '<b style="font-size:14px">' + esc(i) + '</b><br><span style="color:#64748b">' + esc({pole: "Pole", cust: "Customer", trf: "Transformer"}[t.type] || t.type) + (t.manual ? " · moved by hand" : "") + '</span><div style="display:flex;gap:6px;margin-top:8px"><button type="button" onclick="editRecord(\'' + esc(t.id) + '\')" style="border:0;background:#0369a1;color:#fff;border-radius:8px;padding:8px 12px;font-weight:700;font-size:13px">✎ Edit details</button></div><div style="font-size:11.5px;color:#64748b;margin-top:6px">Hold and drag the point to move it.</div>'
-}
-
-function setMapFull(e) {
-  var t = $("#mapcard");
-  if (t) {
-    t.classList.toggle("mapfull", e), document.body.classList.toggle("mapopen", e);
-    var n = $("#mapFs");
-    n && (n.innerHTML = e ? "✕ Close" : "⛶ Full screen", n.setAttribute("aria-pressed", e ? "true" : "false")), e && "block" !== $("#satmap").style.display && "block" !== $("#minimap").style.display && showSat();
-    [80, 300].forEach(function(e) {
-      setTimeout(function() {
-        LMap && LMap.invalidateSize()
-      }, e)
-    })
-  }
-}
-
-function openMapFull() {
-  if (!mapIsFull()) {
-    try {
-      history.pushState({
-        mapfull: 1
-      }, "")
-    } catch (e) {}
-    setMapFull(!0)
-  }
-}
-
-function closeMapFull() {
-  mapIsFull() && (history.state && history.state.mapfull ? history.back() : setMapFull(!1))
-}
-
-function showUndoMove() {
-  var e = $("#undoMove");
-  e && lastMove && (e.classList.remove("hidden"), clearTimeout(undoTimer), undoTimer = setTimeout(function() {
-    e.classList.add("hidden"), lastMove = null
-  }, 2e4))
-}
-
-function undoMove() {
-  var e = lastMove && records.filter(function(e) {
-    return e.id === lastMove.id
-  })[0];
-  if (e) {
-    var t = lastMove;
-    e.lat = t.lat, e.lon = t.lon, e.x = t.x, e.y = t.y, e.manual = t.manual, e.updatedAt = (new Date).toISOString(), e.props.District = t.adm[0], e.props.Sector = t.adm[1], e.props.Cell = t.adm[2], e.props.Village = t.adm[3], recomputeDerived(), persist(), drawMap(), badges(), satKeepView = !0, showSat(), toast("Move undone")
-  }
-  lastMove = null;
-  var n = $("#undoMove");
-  n && n.classList.add("hidden")
-}
-(function() {
-  var e = $("#mapFs");
-  e && (e.onclick = function() {
-    mapIsFull() ? closeMapFull() : openMapFull()
-  });
-  var t = $("#undoMove");
-  t && (t.onclick = undoMove), addEventListener("popstate", function() {
-    mapIsFull() && setMapFull(!1)
-  }), addEventListener("keydown", function(e) {
-    "Escape" === e.key && closeMapFull()
-  })
-})();

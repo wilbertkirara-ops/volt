@@ -1,5 +1,5 @@
 // Voltline (Kirehe & Ngoma) — offline app shell. Bump CACHE on every release.
-var CACHE='voltline-v15';
+var CACHE='voltline-v16';
 var ASSETS=['./','./index.html','./app.js','./tracker.html','./manifest.webmanifest',
   './voltline-transformers.js','./voltline-villages.js','./voltline-customers.js',
   './exceljs.min.js','./jszip.min.js','./zxing.min.js','./voltline-template.xlsx',

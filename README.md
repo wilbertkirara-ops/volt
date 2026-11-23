@@ -16,5 +16,11 @@ Created by Eng. Wilbert KIRARA. Same engine as WK LV As-Built (Nyanza), set up f
 Replace the files in the same repository (same link). Data already on the phones is kept and moved to the new format on first opening.
 Bump `CACHE` in `sw.js` and `BUILD` in `app.js` on every release.
 
-## Automatic sync (optional)
-Off by default. The supervisor pastes the Google Apps Script /exec URL in Export › Automatic sync › Server settings.
+## Automatic sync (Google Drive)
+Server: `apps-script/Code.gs` (Google Apps Script web app). It writes every point to the Google Sheet
+"Voltline - Lot 2 LV As-Built (Kirehe & Ngoma) - Sync" (tabs Transformers / Poles / Customers) and the
+stamped photos to Drive "Voltline - Lot 2 Photos/<District>/<Transformer>/".
+Setup once: script.google.com > New project > paste Code.gs > Deploy > New deployment > Web app
+(Execute as: Me, Who has access: Anyone) > Authorise > copy the /exec URL.
+Then set SYNC_URL_DEFAULT in app.js to that URL (all phones sync by themselves), or paste it on each
+phone in Export > Automatic sync > Server settings. TOKEN in Code.gs must equal SYNC_TOKEN in app.js.
