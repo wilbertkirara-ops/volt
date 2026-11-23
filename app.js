@@ -462,7 +462,7 @@ var TRF_TABLE = {
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-19-v4",
+  BUILD = "2026-11-23-v5",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -1487,7 +1487,8 @@ function makeSatLayer(e) {
       }), n
     }
   }))(SAT_URL + "{z}/{y}/{x}", {
-    maxZoom: 20
+    maxZoom: 21,
+    maxNativeZoom: 18
   })
 }
 
@@ -1678,12 +1679,21 @@ function showSat() {
         icon: o(a, r),
         draggable: !0
       }).addTo(LLayer);
-      s.bindPopup(esc(i) + "<br><b>tap = edit, drag = move</b>"), s.on("click", function() {
-        editRecord(t.id)
+      s.bindPopup(mapPopup(t, i)), s.on("click", function() {
+        mapIsFull() || editRecord(t.id)
       }), s.on("dragend", function() {
         var e = s.getLatLng(),
           n = toGrid(e.lat, e.lng);
-        t.lat = e.lat, t.lon = e.lng, t.x = n.x, t.y = n.y, t.manual = !0, setAdminProps(t.props, n.x, n.y), recomputeDerived(), persist(), drawMap(), badges(), showSat(), toast("Moved " + (t.props.Pole_Numbe || t.props["HSE No."] || "point") + " to the new position")
+        lastMove = {
+          id: t.id,
+          lat: t.lat,
+          lon: t.lon,
+          x: t.x,
+          y: t.y,
+          manual: t.manual,
+          adm: [t.props.District, t.props.Sector, t.props.Cell, t.props.Village]
+        };
+        t.lat = e.lat, t.lon = e.lng, t.x = n.x, t.y = n.y, t.manual = !0, t.updatedAt = (new Date).toISOString(), setAdminProps(t.props, n.x, n.y), recomputeDerived(), persist(), drawMap(), badges(), satKeepView = !0, showSat(), showUndoMove(), toast("Moved " + (t.props.Pole_Numbe || t.props["HSE No."] || "point") + " to the new position")
       }), n.push([t.lat, t.lon])
     }
     spans().forEach(function(t) {
@@ -1714,7 +1724,10 @@ function showSat() {
       r(e, 14, "#12795B", e.props["HSE No."] || "HH")
     }), fix && n.push([fix.lat, fix.lon]);
     var a = gpsLast || fix;
-    if (followMe && a) LMap.setView([a.lat, a.lon], locZoom()), setTimeout(function() {
+    if (satKeepView) satKeepView = !1, setTimeout(function() {
+      LMap.invalidateSize()
+    }, 100);
+    else if (followMe && a) LMap.setView([a.lat, a.lon], locZoom()), setTimeout(function() {
       LMap.invalidateSize()
     }, 100);
     else if (n.length) LMap.fitBounds(n, {
@@ -1731,7 +1744,7 @@ function showSat() {
       if (i) {
         var s = toLatLon(i.e, i.y);
         LMap.setView([s.lat, s.lon], 17)
-      } else LMap.setView([-2.35, 29.74], 12)
+      } else LMap.setView("Ngoma" === ctx.district ? [-2.17, 30.47] : [-2.26, 30.7], 11)
     }
     updateYou(), satDiagShow()
   }).catch(function() {
@@ -2635,6 +2648,7 @@ function dupNear(e) {
 }
 
 function editRecord(e) {
+  closeMapFull();
   var t = records.filter(function(t) {
     return t.id === e
   })[0];
@@ -4184,3 +4198,77 @@ idbOpen().then(function(e) {
     }, 1600)
   }
 });
+/* ================== full-screen map ================== */
+var satKeepView = !1,
+  lastMove = null,
+  undoTimer = null;
+
+function mapIsFull() {
+  var e = $("#mapcard");
+  return !!e && e.classList.contains("mapfull")
+}
+
+function mapPopup(t, i) {
+  return '<b style="font-size:14px">' + esc(i) + '</b><br><span style="color:#64748b">' + esc({pole: "Pole", cust: "Customer", trf: "Transformer"}[t.type] || t.type) + (t.manual ? " · moved by hand" : "") + '</span><div style="display:flex;gap:6px;margin-top:8px"><button type="button" onclick="editRecord(\'' + esc(t.id) + '\')" style="border:0;background:#0369a1;color:#fff;border-radius:8px;padding:8px 12px;font-weight:700;font-size:13px">✎ Edit details</button></div><div style="font-size:11.5px;color:#64748b;margin-top:6px">Hold and drag the point to move it.</div>'
+}
+
+function setMapFull(e) {
+  var t = $("#mapcard");
+  if (t) {
+    t.classList.toggle("mapfull", e), document.body.classList.toggle("mapopen", e);
+    var n = $("#mapFs");
+    n && (n.innerHTML = e ? "✕ Close" : "⛶ Full screen", n.setAttribute("aria-pressed", e ? "true" : "false")), e && "block" !== $("#satmap").style.display && "block" !== $("#minimap").style.display && showSat();
+    [80, 300].forEach(function(e) {
+      setTimeout(function() {
+        LMap && LMap.invalidateSize()
+      }, e)
+    })
+  }
+}
+
+function openMapFull() {
+  if (!mapIsFull()) {
+    try {
+      history.pushState({
+        mapfull: 1
+      }, "")
+    } catch (e) {}
+    setMapFull(!0)
+  }
+}
+
+function closeMapFull() {
+  mapIsFull() && (history.state && history.state.mapfull ? history.back() : setMapFull(!1))
+}
+
+function showUndoMove() {
+  var e = $("#undoMove");
+  e && lastMove && (e.classList.remove("hidden"), clearTimeout(undoTimer), undoTimer = setTimeout(function() {
+    e.classList.add("hidden"), lastMove = null
+  }, 2e4))
+}
+
+function undoMove() {
+  var e = lastMove && records.filter(function(e) {
+    return e.id === lastMove.id
+  })[0];
+  if (e) {
+    var t = lastMove;
+    e.lat = t.lat, e.lon = t.lon, e.x = t.x, e.y = t.y, e.manual = t.manual, e.updatedAt = (new Date).toISOString(), e.props.District = t.adm[0], e.props.Sector = t.adm[1], e.props.Cell = t.adm[2], e.props.Village = t.adm[3], recomputeDerived(), persist(), drawMap(), badges(), satKeepView = !0, showSat(), toast("Move undone")
+  }
+  lastMove = null;
+  var n = $("#undoMove");
+  n && n.classList.add("hidden")
+}
+(function() {
+  var e = $("#mapFs");
+  e && (e.onclick = function() {
+    mapIsFull() ? closeMapFull() : openMapFull()
+  });
+  var t = $("#undoMove");
+  t && (t.onclick = undoMove), addEventListener("popstate", function() {
+    mapIsFull() && setMapFull(!1)
+  }), addEventListener("keydown", function(e) {
+    "Escape" === e.key && closeMapFull()
+  })
+})();
