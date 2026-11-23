@@ -24,3 +24,6 @@ Setup once: script.google.com > New project > paste Code.gs > Deploy > New deplo
 (Execute as: Me, Who has access: Anyone) > Authorise > copy the /exec URL.
 Then set SYNC_URL_DEFAULT in app.js to that URL (all phones sync by themselves), or paste it on each
 phone in Export > Automatic sync > Server settings. TOKEN in Code.gs must equal SYNC_TOKEN in app.js.
+
+Live sync server (deployment "Voltline sync v1", project "Voltline - Lot 2 Sync"):
+https://script.google.com/macros/s/AKfycbwm9WN32u66its86mhn2H38IZ5vQD6JX4DMpdShLRLtOYet9kIfv7wLbhMpIY0r9xI1Zg/exec

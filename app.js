@@ -462,7 +462,7 @@ var TRF_TABLE = {
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-23-v6",
+  BUILD = "2026-11-23-v7",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -3764,7 +3764,7 @@ async function storageInfo() {
     e.textContent = t
   }
 }
-var SYNC_URL_DEFAULT = "",
+var SYNC_URL_DEFAULT = "https://script.google.com/macros/s/AKfycbwm9WN32u66its86mhn2H38IZ5vQD6JX4DMpdShLRLtOYet9kIfv7wLbhMpIY0r9xI1Zg/exec",
   SYNC_TOKEN = "voltline-lot2-BGl9Xupb46NuUjF-7mv2gqUA",
   SYNC_URL_KEY = "voltline-sync-url",
   DEL_KEY = "voltline-sync-deletes",
