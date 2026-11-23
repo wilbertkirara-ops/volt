@@ -75,6 +75,7 @@
   </div>
   <nav role="tablist">
     <button role="tab" aria-selected="true" data-tab="team">Team tracking</button>
+    <button role="tab" aria-selected="false" data-tab="progress">Progress vs customer list</button>
     <button role="tab" aria-selected="false" data-tab="summary">Transformer summary</button>
     <button role="tab" aria-selected="false" data-tab="issues">Issues</button>
     <button role="tab" aria-selected="false" data-tab="merge">Merge and export</button>
@@ -94,6 +95,15 @@
       <span class="note" id="loadinfo" style="align-self:center"></span>
     </div>
   </div>
+  <div class="card" style="margin-top:10px">
+    <b>Live data from Google Drive</b>
+    <div class="note" style="margin:4px 0 10px">Everything the phones have synced, without waiting for the WhatsApp files. Needs a supervisor sync code (Agents tab of the sync Sheet).</div>
+    <div class="row">
+      <input id="sv_code" type="password" autocomplete="off" placeholder="Supervisor sync code" style="padding:11px;border:1px solid var(--rule);border-radius:2px;font-size:15px;min-width:200px;flex:1 1 200px">
+      <button class="act go" id="btn_live">Load live data</button>
+    </div>
+    <div class="note" id="liveinfo" style="margin-top:8px"></div>
+  </div>
 
   <section id="tab-team">
     <div class="kpis" id="kpis"></div>
@@ -101,6 +111,31 @@
     <div class="card" id="agents"></div>
     <h2>By transformer</h2>
     <div class="card" id="zones"></div>
+  </section>
+
+  <section id="tab-progress" hidden>
+    <div class="kpis" id="pg_kpis"></div>
+    <h2>By transformer</h2>
+    <div class="card" style="overflow-x:auto">
+      <div class="row" style="margin-bottom:10px">
+        <select id="pg_dist" style="padding:9px;border:1px solid var(--rule);border-radius:2px;font-size:15px">
+          <option value="">Kirehe and Ngoma</option><option>Kirehe</option><option>Ngoma</option>
+        </select>
+        <label class="note" style="align-self:center"><input type="checkbox" id="pg_started"> only transformers already started</label>
+      </div>
+      <div id="pg_trf"></div>
+      <p class="note" style="margin-bottom:0">A surveyed customer is matched to the list by meter number, then national ID, then name. "Not in list" = surveyed customers that match nobody on the list (new connection, or a typo to check).</p>
+    </div>
+    <h2>By surveyor and day</h2>
+    <div class="card" style="overflow-x:auto" id="pg_day"></div>
+    <h2>Customers not surveyed yet</h2>
+    <div class="card" style="overflow-x:auto">
+      <div class="row" style="margin-bottom:10px">
+        <select id="pg_misssel" style="padding:9px;border:1px solid var(--rule);border-radius:2px;font-size:15px;max-width:100%"></select>
+        <button class="act ghost" id="pg_misscsv">Download as CSV</button>
+      </div>
+      <div id="pg_miss"></div>
+    </div>
   </section>
 
   <section id="tab-summary" hidden>
@@ -143,6 +178,8 @@
   </section>
 </div>
 
+<script src="voltline-transformers.js"></script>
+<script src="voltline-customers.js"></script>
 <script>
 var ASSEMBLY=['ABC Suspension Assembly (0\u00B0 - 30\u00B0)','ABC Strain Assembly (30\u00B0 - 60\u00B0)','ABC Strain Assembly (60\u00B0 - 90\u00B0)',
   'T-Off Assembly from Intermediate','T-Off Assembly from Strain','Cross Intermediate-Intermediate Assembly',
@@ -182,7 +219,14 @@ function num(v){var n=parseFloat(v);return isFinite(n)?n:null;}
 function pad2(n){return String(n).padStart(2,'0');}
 function locDate(t){var d=new Date(t);return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
 function locTime(t){var d=new Date(t);return pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds());}
-function all(){var r=[];Object.keys(packs).forEach(function(k){r=r.concat(packs[k].records||[]);});return r;}
+/* the same point can come from a WhatsApp file and from the live Sheet: keep the newest copy once */
+var ALL=null;
+function all(){ if(ALL) return ALL; var by={},out=[];
+  Object.keys(packs).forEach(function(k){(packs[k].records||[]).forEach(function(r){
+    if(!r.id){out.push(r);return;} var i=by[r.id];
+    if(i===undefined){by[r.id]=out.length;out.push(r);}
+    else if(String(r.updatedAt||r.time||'')>String(out[i].updatedAt||out[i].time||'')) out[i]=r; });});
+  return ALL=out; }
 function ofType(t){return t==='span'?spans():all().filter(function(r){return r.type===t;});}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
 /* a span can start at the transformer: index transformers by name, poles override */
@@ -209,7 +253,7 @@ function load(){try{var v=localStorage.getItem(KEY);if(v)packs=JSON.parse(v);}ca
 Array.prototype.forEach.call(document.querySelectorAll('nav button'),function(b){
   b.onclick=function(){
     Array.prototype.forEach.call(document.querySelectorAll('nav button'),function(x){x.setAttribute('aria-selected',x===b);});
-    ['team','summary','issues','merge'].forEach(function(t){$('#tab-'+t).hidden=(t!==b.dataset.tab);});
+    ['team','progress','summary','issues','merge'].forEach(function(t){$('#tab-'+t).hidden=(t!==b.dataset.tab);});
     render();
   };
 });
@@ -244,8 +288,131 @@ function handle(files){
 $('#btn_clear').onclick=function(){ if(!confirm('Clear the tracker? The surveyors\u2019 own files are not affected.'))return;
   packs={}; save(); render(); $('#loadinfo').textContent=''; };
 
+
+/* ---------- live data from the sync server (supervisor code) ---------- */
+var SYNC_URL='https://script.google.com/macros/s/AKfycbwm9WN32u66its86mhn2H38IZ5vQD6JX4DMpdShLRLtOYet9kIfv7wLbhMpIY0r9xI1Zg/exec',
+  SYNC_TOKEN='voltline-lot2-p8zblULZSwk3lqdCHRrmj764', SVKEY='voltline-tracker-code',
+  TAB_TYPE={Transformers:'trf',Poles:'pole',Customers:'cust'},
+  SRV_COLS=['Record ID','Photo','Photo File ID','Received (server)','Status','Latitude','Longitude','Edited by','Updated (phone)'];
+try{ $('#sv_code').value=localStorage.getItem(SVKEY)||''; }catch(e){}
+$('#btn_live').onclick=loadLive;
+async function loadLive(){
+  var code=$('#sv_code').value.trim(), info=$('#liveinfo');
+  if(!code){ info.textContent='Type the supervisor sync code first.'; return; }
+  try{ localStorage.setItem(SVKEY,code); }catch(e){}
+  info.textContent='Loading from Google Drive…'; $('#btn_live').disabled=true;
+  try{
+    var res=await fetch(SYNC_URL,{method:'POST',body:JSON.stringify({token:SYNC_TOKEN,code:code,agent:'Tracker',action:'pull'}),redirect:'follow'});
+    var j=await res.json(); if(!j.ok) throw new Error(j.error||'server error');
+    var byAgent={}, n=0;
+    Object.keys(j.tabs||{}).forEach(function(tab){
+      var t=TAB_TYPE[tab], T=j.tabs[tab]; if(!t||!T) return; var H=T.header||[];
+      (T.rows||[]).forEach(function(row){
+        var o={}; H.forEach(function(h,i){o[h]=row[i]==null?'':String(row[i]);});
+        if(!o['Record ID']||/^DELETED/.test(o.Status||'')) return;
+        var props={}; H.forEach(function(h){ if(SRV_COLS.indexOf(h)<0) props[h]=o[h]; });
+        var who=o.Agent||o['Edited by']||'unknown';
+        var rec={id:o['Record ID'],type:t,props:props,agent:who,trf:o.TRF_Name||'',
+          x:num(o.X||o.House_X),y:num(o.Y||o.House_Y),lat:num(o.Latitude),lon:num(o.Longitude),
+          time:(o.Date&&o.Time)?o.Date+'T'+o.Time:(o['Updated (phone)']||o['Received (server)']||''),
+          updatedAt:o['Updated (phone)']||'',photo:!!o.Photo,drivePhoto:o.Photo||''};
+        (byAgent[who]=byAgent[who]||[]).push(rec); n++;
+      });
+    });
+    Object.keys(packs).forEach(function(k){ if(packs[k].live) delete packs[k]; });
+    Object.keys(byAgent).forEach(function(a){
+      var R=byAgent[a], z={}; R.forEach(function(r){var t=recTrf(r)||custTrf(r); if(t) z[t]=(z[t]||0)+1;});
+      var top=Object.keys(z).sort(function(p,q){return z[q]-z[p];})[0]||'';
+      packs['live · '+a]={app:'Voltline',live:true,agent:{name:a,code:'live · '+a},zone:{trf:top},records:R,count:R.length,created:j.time};
+    });
+    save(); render();
+    info.textContent=n+' points from the Google Sheet, '+Object.keys(byAgent).length+' surveyor'+(Object.keys(byAgent).length===1?'':'s')+' · loaded '+locDate(Date.now())+' '+locTime(Date.now()).slice(0,5);
+  }catch(e){ info.textContent='Could not load: '+(e.message||e); }
+  finally{ $('#btn_live').disabled=false; }
+}
+
+/* ---------- progress against the customer list ---------- */
+var CDB=(window.CUST_DB&&window.CUST_DB.db)||{}, CF={};
+((window.CUST_DB&&window.CUST_DB.fields)||[]).forEach(function(f,i){CF[f]=i;});
+var TX=window.NYZ_TX||[], TXD={}; TX.forEach(function(t){TXD[t.name]=t.district;});
+function digits(v){return String(v||'').replace(/\D/g,'');}
+function nmKey(a,b){return (String(a||'')+' '+String(b||'')).toUpperCase().replace(/[^A-Z ]/g,' ').replace(/\s+/g,' ').trim();}
+function matchList(list,cust){
+  var bm={},bi={},bn={},got={},extra=[];
+  list.forEach(function(r,i){
+    var m=digits(r[CF.meter]); if(m) (bm[m]=bm[m]||[]).push(i);
+    var d=digits(r[CF.id]); if(d.length>=10) (bi[d]=bi[d]||[]).push(i);
+    var k=nmKey(r[CF.first],r[CF.last]); if(k) (bn[k]=bn[k]||[]).push(i);
+  });
+  function free(a){ if(!a) return null; for(var i=0;i<a.length;i++) if(!got[a[i]]) return a[i]; return null; }
+  cust.forEach(function(c){
+    var p=c.props||{}, m=digits(p.Meter_number), d=digits(p.ID), hit=null;
+    if(m) hit=free(bm[m]);
+    if(hit===null&&d.length>=10) hit=free(bi[d]);
+    if(hit===null) hit=free(bn[nmKey(p['FIRST NAME'],p['Second Name'])]);
+    if(hit===null) hit=free(bn[nmKey(p['Second Name'],p['FIRST NAME'])]);
+    if(hit===null) extra.push(c); else got[hit]=1;
+  });
+  return {found:Object.keys(got).length,extra:extra,missing:list.filter(function(r,i){return !got[i];})};
+}
+var PG=null, PG_USER='';
+function progressData(){
+  var by={};
+  function z(t){ return by[t]=by[t]||{trf:t,district:TXD[t]||'',list:CDB[t]||[],cust:[],pole:0,trfpt:0,last:'',who:{}}; }
+  Object.keys(CDB).forEach(z); TX.forEach(function(t){z(t.name);});
+  all().forEach(function(r){
+    var t=(r.type==='cust'?custTrf(r):recTrf(r))||'(no transformer)', o=z(t);
+    if(r.type==='cust') o.cust.push(r); else if(r.type==='pole') o.pole++; else if(r.type==='trf') o.trfpt++; else return;
+    o.who[(r.props&&r.props.Agent)||r.agent||'?']=1; if(String(r.time||'')>o.last) o.last=String(r.time||'');
+  });
+  return Object.keys(by).map(function(k){ var o=by[k], m=matchList(o.list,o.cust); o.found=m.found; o.extra=m.extra; o.missing=m.missing; return o; });
+}
+function pct(a,b){ return b?Math.min(100,Math.round(a/b*100)):0; }
+function progress(){
+  if(!$('#pg_trf')) return;
+  var D=PG=progressData(), dsel=$('#pg_dist').value, only=$('#pg_started').checked;
+  var rows=D.filter(function(o){ return (!dsel||o.district===dsel)&&(!only||o.cust.length||o.pole||o.trfpt); });
+  rows.sort(function(a,b){ return (b.cust.length+b.pole>0)-(a.cust.length+a.pole>0) || pct(b.found,b.list.length)-pct(a.found,a.list.length) || a.trf.localeCompare(b.trf); });
+  var exp=0,found=0,surv=0,started=0;
+  rows.forEach(function(o){ exp+=o.list.length; found+=o.found; surv+=o.cust.length; if(o.cust.length||o.pole) started++; });
+  $('#pg_kpis').innerHTML=[['Customers on the lists',exp],['Surveyed and matched',found],['Progress',pct(found,exp)+' %'],['Transformers started',started+' / '+rows.length],['Surveyed, not in list',surv-found,surv-found?'alert':'']]
+    .map(function(k){return '<div class="kpi '+(k[2]||'')+'"><div class="v">'+k[1]+'</div><div class="l">'+k[0]+'</div></div>';}).join('');
+  $('#pg_trf').innerHTML=rows.length?'<table><tr><th>Transformer</th><th>District</th><th>Customers</th><th>Progress</th><th>Not in list</th><th>Poles</th><th>Surveyors</th><th>Last point</th></tr>'
+    +rows.map(function(o){ var p=pct(o.found,o.list.length), stale=o.last&&(Date.now()-new Date(o.last).getTime())>2*86400000&&p<100;
+      return '<tr><td><b>'+esc(o.trf)+'</b>'+(o.trfpt?'':(o.cust.length||o.pole?' <span class="note" style="color:var(--live)">· no TRF point</span>':''))+'</td><td>'+esc(o.district)+'</td>'
+        +'<td class="n">'+o.found+' / '+(o.list.length||'—')+'</td>'
+        +'<td style="min-width:120px"><div class="bar"><i style="width:'+p+'%;background:'+(p>=100?'var(--earth)':p>=50?'var(--blue)':'var(--signal)')+'"></i></div><div class="note" style="font-family:var(--mono)">'+(o.list.length?p+' %':'no list')+'</div></td>'
+        +'<td class="n" style="color:'+(o.extra.length?'var(--live)':'var(--steel)')+'">'+o.extra.length+'</td>'
+        +'<td class="n">'+o.pole+'</td><td class="agent" style="font-size:12px">'+esc(Object.keys(o.who).join(', '))+'</td>'
+        +'<td class="'+(stale?'stale':'')+'">'+(o.last?locDate(o.last):'—')+'</td></tr>'; }).join('')+'</table>'
+    :'<p class="note" style="margin:0">No transformer for this filter.</p>';
+  $('#pg_dist').onchange=progress; $('#pg_started').onchange=progress;
+  /* by surveyor and day */
+  var day={};
+  all().forEach(function(r){ if(!r.time) return; var d=locDate(r.time), a=(r.props&&r.props.Agent)||r.agent||'?', k=d+'|'+a;
+    var o=day[k]=day[k]||{d:d,a:a,trf:0,pole:0,cust:0,t:{}}; if(o[r.type]!==undefined) o[r.type]++; var t=r.type==='cust'?custTrf(r):recTrf(r); if(t) o.t[t]=1; });
+  var dk=Object.keys(day).sort().reverse().slice(0,60);
+  $('#pg_day').innerHTML=dk.length?'<table><tr><th>Day</th><th>Surveyor</th><th>Transformer(s)</th><th>Customers</th><th>Poles</th><th>TRF</th></tr>'
+    +dk.map(function(k){var o=day[k];return '<tr><td style="font-family:var(--mono);white-space:nowrap">'+o.d+'</td><td class="agent">'+esc(o.a)+'</td><td>'+esc(Object.keys(o.t).join(', '))+'</td><td class="n">'+o.cust+'</td><td class="n">'+o.pole+'</td><td class="n">'+o.trf+'</td></tr>';}).join('')+'</table>'
+    :'<p class="note" style="margin:0">No data loaded yet: load the live data or the surveyors’ files.</p>';
+  /* missing customers */
+  var sel=$('#pg_misssel'), cur=PG_USER, cand=D.filter(function(o){return o.list.length;}).sort(function(a,b){return (b.cust.length>0)-(a.cust.length>0)||a.trf.localeCompare(b.trf);});
+  if(!cur){ var st=cand.filter(function(o){return o.cust.length&&o.missing.length;})[0]; cur=st?st.trf:(cand[0]&&cand[0].trf)||''; }
+  sel.innerHTML=cand.map(function(o){return '<option value="'+esc(o.trf)+'"'+(o.trf===cur?' selected':'')+'>'+esc(o.trf)+' · '+o.missing.length+' not surveyed</option>';}).join('');
+  sel.onchange=function(){ PG_USER=sel.value; progress(); };
+  var o=D.filter(function(x){return x.trf===cur;})[0];
+  $('#pg_miss').innerHTML=!o?'':!o.missing.length?'<b style="color:var(--earth)">All '+o.list.length+' customers of '+esc(o.trf)+' are surveyed.</b>'
+    :'<p class="note" style="margin-top:0">'+o.missing.length+' of '+o.list.length+' customers of <b>'+esc(o.trf)+'</b> not surveyed yet, sorted by pole.</p><table><tr><th>SN</th><th>Name</th><th>Pole</th><th>Meter</th><th>Phone</th><th>Village</th></tr>'
+      +missSorted(o).map(function(r){return '<tr><td class="n">'+esc(r[CF.house])+'</td><td>'+esc(nmKey(r[CF.first],r[CF.last]))+'</td><td class="n">'+esc(r[CF.pole])+'</td><td class="n">'+esc(r[CF.meter])+'</td><td class="n">'+esc(r[CF.phone])+'</td><td>'+esc(r[CF.village])+'</td></tr>';}).join('')+'</table>';
+  $('#pg_misscsv').onclick=function(){ if(!o||!o.missing.length) return;
+    function q(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
+    var L=['SN,Name,Pole,Meter,Phone,National ID,Village,Cell,Sector'].concat(missSorted(o).map(function(r){return [r[CF.house],nmKey(r[CF.first],r[CF.last]),r[CF.pole],r[CF.meter],r[CF.phone],r[CF.id],r[CF.village],r[CF.cell],r[CF.sector]].map(q).join(',');}));
+    dl('Not_surveyed_'+o.trf.replace(/[^A-Za-z0-9_-]+/g,'_')+'_'+stamp()+'.csv','﻿'+L.join('\r\n'),'text/csv'); };
+}
+function missSorted(o){ return o.missing.slice().sort(function(a,b){ var x=parseInt(digits(a[CF.pole]))||1e9, y=parseInt(digits(b[CF.pole]))||1e9; return x-y||(parseInt(a[CF.house])||0)-(parseInt(b[CF.house])||0); }); }
+
 /* ---------- render ---------- */
-function render(){ ANOM=null; kpis(); agents(); zones(); summary(); issues(); merge(); }
+function render(){ ANOM=null; ALL=null; kpis(); agents(); zones(); progress(); summary(); issues(); merge(); }
 
 function kpis(){
   var errs=anomalyList().filter(function(x){return x[2];}).length;

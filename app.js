@@ -471,7 +471,7 @@ var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-23-v8",
+  BUILD = "2026-11-23-v9",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -919,7 +919,7 @@ function agentInitials() {
 }
 
 function openGate() {
-  $("#g_name").value = agent && agent.name || "", $("#g_tel").value = agent && agent.tel || "", $("#gate").style.display = "grid";
+  $("#g_name").value = agent && agent.name || "", $("#g_tel").value = agent && agent.tel || "", $("#g_code") && ($("#g_code").value = syncCode()), $("#gate").style.display = "grid";
   try {
     window.scrollTo(0, 0)
   } catch (e) {}
@@ -960,7 +960,7 @@ $("#g_ok").onclick = function() {
   e.length < 3 || !/\s/.test(e) ? toast("Enter your first and last name") : (agent = {
     name: e,
     tel: $("#g_tel").value.trim()
-  }, persist(), closeGate())
+  }, $("#g_code") && $("#g_code").value.trim() && (setSyncCode($("#g_code").value), syncErr = "", "function" == typeof syncSoon && syncSoon(1e3)), persist(), closeGate())
 }, $("#agentpill").onclick = openGate, $("#agentpill").style.cursor = "pointer", $("#agentpill").title = "Change surveyor", Array.prototype.forEach.call(document.querySelectorAll("nav button"), function(e) {
   e.onclick = function() {
     $("#tab-capture").hidden || captureDraft(), Array.prototype.forEach.call(document.querySelectorAll("nav button"), function(t) {
@@ -3092,7 +3092,7 @@ function qaCheck() {
     i[e].length > 1 && i[e].forEach(function(t) {
       n("dupid", QA_CHK, "Same national ID on two customers (two meters, or a typo)", t.c, t.nm + " · " + e)
     })
-  }), e.sort(function(e, t) {
+  }), qaExtra(n), e.sort(function(e, t) {
     return e.sev === t.sev ? 0 : e.sev === QA_FIX ? -1 : 1
   });
   var c = 0,
@@ -3104,6 +3104,53 @@ function qaCheck() {
     fix: c,
     chk: u
   }
+}
+
+var SPAN_MAX = {
+  "1x25+54.6mm2": 55,
+  "1x35+54.6mm2": 55,
+  "3x25+54.6mm2": 50,
+  "3x35+54.6mm2": 50,
+  "3x50+54.6mm2": 47,
+  "3x70+54.6mm2": 44,
+  "3x95+54.6mm2": 45,
+  "3x120+54.6mm2": 45
+};
+
+function qaExtra(n) {
+  custs().forEach(function(e) {
+    var t = [e.props["FIRST NAME"], e.props["Second Name"]].filter(Boolean).join(" ") || e.props["HSE No."] || "customer",
+      o = String(e.props.ID || "").replace(/\s/g, "");
+    o && !/^\d{16}$/.test(o) && n("badid", QA_CHK, "National ID is not 16 digits", e, t + " · " + o + " (" + o.length + ")");
+    var r = String(e.props.Phone_number || "").replace(/[\s\-+.]/g, "");
+    r && !/^(0|250)7[2389]\d{7}$/.test(r) && n("badtel", QA_CHK, "Phone number is not a Rwandan mobile (07X XXX XXXX)", e, t + " · " + e.props.Phone_number);
+    var a = parseFloat(e.props["Horizontal distance of cable from pole to house"]);
+    a > 50 && n("longsvc", QA_CHK, "Service cable longer than 50 m (wrong supply pole or wrong position?)", e, t + " · " + a.toFixed(0) + " m from " + (e.props.POLES || "pole"));
+    var i = parseFloat(e.props.Length_in_list),
+      s = parseFloat(e.props["REAL LENGTH OF SERVICE CABLE"]);
+    i > 0 && s > 0 && Math.abs(i - s) > 20 && n("lendiff", QA_CHK, "Cable length differs by more than 20 m from the customer list", e, t + " · list " + i + " m → field " + s.toFixed(0) + " m")
+  }), spans().forEach(function(e) {
+    var t = SPAN_MAX[e.Conductor] || 60;
+    e.Length_m > t && n("longspan", QA_CHK, "LV span longer than allowed for its conductor", e.pole, e.Span_ID + " · " + e.Length_m.toFixed(0) + " m > " + t + " m" + (e.Conductor ? " (" + e.Conductor + ")" : ""))
+  }), records.forEach(function(e) {
+    var t = parseFloat(e.acc);
+    !e.manual && t > 10 && n("lowacc", QA_CHK, "Position taken with poor GPS accuracy (worse than ±10 m): re-capture or move it on the map", e, nameOf(e).trim() + " · ±" + t.toFixed(0) + " m")
+  })
+}
+
+function qaGate(e) {
+  var t = qaCheck();
+  if (!t.fix && !t.chk) return !0;
+  var n = t.groups.map(function(e) {
+    return (e.sev === QA_FIX ? "✖ " : "• ") + e.items.length + " × " + e.label
+  }).join("\n");
+  if (confirm("Check before " + e + ": " + (t.fix ? t.fix + " to fix" : "") + (t.fix && t.chk ? ", " : "") + (t.chk ? t.chk + " to check" : "") + ".\n\n" + n + "\n\nCancel = see the list and correct (tap an item to open the point).\nOK = continue anyway.")) return !0;
+  renderQA();
+  var o = $("#qacard");
+  return o && o.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  }), !1
 }
 
 function renderQA() {
@@ -3130,6 +3177,8 @@ function renderSend() {
   renderQA(), renderSync(), renderDriveInfo(), storageInfo(), updateNet();
   var e = $("#syncUrlIn");
   e && !e.value && (e.value = syncUrl());
+  var sc = $("#syncCodeIn");
+  sc && !sc.value && (sc.value = syncCode());
   var t = $("#appver");
   t && (t.innerHTML = esc(APP_NAME + " · build " + BUILD + " · © 2026 ") + '<img class="au" src="author.png" alt="">Eng. Wilbert KIRARA'), $("#counts").innerHTML = TYPE_ORDER.map(function(e) {
     return '<div class="cnt"><span>' + SCHEMA[e].label + "</span><b>" + ofType(e).length + "</b></div>"
@@ -3642,7 +3691,7 @@ $("#ex_kml").onclick = async function() {
     console.error(e), toast("Could not create the file: " + e.message)
   }
 }, $("#ex_all").onclick = async function() {
-  if (exportGuard()) try {
+  if (exportGuard() && qaGate("the complete package")) try {
     var e = baseName();
     toast("Building the package…");
     var t = [{
@@ -3768,13 +3817,13 @@ async function buildXLSX(e) {
   return await n.xlsx.writeBuffer()
 }
 async function exportXLSXOnly() {
-  if (custs().length) try {
+  if (custs().length && qaGate("the Excel report")) try {
     toast("Building Excel…");
     var e = await buildXLSX();
     dlBytes("Customers_" + String(ctx.trf || "TRF").replace(/[^A-Za-z0-9_-]+/g, "_") + "_" + agentSlug() + "_" + stamp() + ".xlsx", new Uint8Array(e), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), toast("Excel exported (" + custs().length + " customers)")
   } catch (e) {
     console.error(e), toast("Excel export failed: " + (e.message || e))
-  } else toast("No customers yet")
+  } else custs().length || toast("No customers yet")
 }
 
 function backupPack() {
@@ -3853,7 +3902,8 @@ async function storageInfo() {
   }
 }
 var SYNC_URL_DEFAULT = "https://script.google.com/macros/s/AKfycbwm9WN32u66its86mhn2H38IZ5vQD6JX4DMpdShLRLtOYet9kIfv7wLbhMpIY0r9xI1Zg/exec",
-  SYNC_TOKEN = "voltline-lot2-BGl9Xupb46NuUjF-7mv2gqUA",
+  SYNC_TOKEN = "voltline-lot2-p8zblULZSwk3lqdCHRrmj764",
+  SYNC_CODE_KEY = "voltline-sync-code",
   SYNC_URL_KEY = "voltline-sync-url",
   DEL_KEY = "voltline-sync-deletes",
   syncBusy = !1,
@@ -3866,6 +3916,37 @@ function syncUrl() {
     return (localStorage.getItem(SYNC_URL_KEY) || SYNC_URL_DEFAULT || "").trim()
   } catch (e) {
     return SYNC_URL_DEFAULT
+  }
+}
+
+function syncCode() {
+  try {
+    return (localStorage.getItem(SYNC_CODE_KEY) || "").trim()
+  } catch (e) {
+    return ""
+  }
+}
+
+function setSyncCode(e) {
+  try {
+    e ? localStorage.setItem(SYNC_CODE_KEY, String(e).trim().toUpperCase()) : localStorage.removeItem(SYNC_CODE_KEY)
+  } catch (e) {}
+}
+async function saveSyncCode() {
+  var e = $("#syncCodeIn");
+  if (e) {
+    var t = e.value.trim().toUpperCase();
+    if (!t) return toast("Type the sync code given by the supervisor");
+    setSyncCode(t), syncErr = "";
+    try {
+      var n = await post({
+        action: "ping"
+      });
+      toast("Sync code accepted ✓" + (n && n.agent ? " — " + n.agent : "")), syncSoon(300)
+    } catch (e) {
+      syncErr = e.message || String(e), toast("Code not accepted: " + syncErr)
+    }
+    renderSync()
   }
 }
 
@@ -3902,7 +3983,10 @@ function renderSync() {
     var t = pendingCount();
     syncUrl() ? syncBusy ? (e.className = "sync pend", e.textContent = "☁ ⟳ " + t) : syncErr && t ? (e.className = "sync err", e.textContent = "☁ ! " + t) : t ? (e.className = "sync pend", e.textContent = "☁ " + t) : (e.className = "sync ok", e.textContent = "☁ ✓") : (e.className = "sync off", e.textContent = "☁ off");
     var n = $("#syncInfo");
-    n && (n.textContent = syncUrl() ? (t ? t + " item(s) waiting" + (navigator.onLine ? "" : " — phone offline") + (syncErr ? " · last error: " + syncErr : "") : "All points synced ✓") + (lastSyncOk ? " · last sync " + locDate(lastSyncOk) + " " + locTime(lastSyncOk).slice(0, 5) : "") : "Sync is not configured on this phone yet.")
+    n && (n.textContent = syncUrl() ? (t ? t + " item(s) waiting" + (navigator.onLine ? "" : " — phone offline") + (syncErr ? " · last error: " + syncErr : "") : "All points synced ✓") + (lastSyncOk ? " · last sync " + locDate(lastSyncOk) + " " + locTime(lastSyncOk).slice(0, 5) : "") : "Sync is not configured on this phone yet.");
+    var c = $("#syncCodeIn"),
+      k = /code/i.test(syncErr);
+    c && (c.style.borderColor = k ? "var(--live)" : "", c.style.borderWidth = k ? "2px" : ""), e.title = k ? syncErr : ""
   }
 }
 
@@ -3924,7 +4008,9 @@ async function post(e) {
     var o = await fetch(syncUrl(), {
         method: "POST",
         body: JSON.stringify(Object.assign({
-          token: SYNC_TOKEN
+          token: SYNC_TOKEN,
+          agent: agent && agent.name || "",
+          code: syncCode()
         }, e)),
         signal: t.signal,
         redirect: "follow"
@@ -3989,7 +4075,7 @@ async function syncNow(e) {
       }
       lastSyncOk = (new Date).toISOString(), (e || t) && toast(t ? "Synced " + t + " point(s) to Google Drive" : "Everything already synced"), await driveFilesDue(e)
     } catch (t) {
-      syncErr = "AbortError" === t.name ? "timeout" : t.message || String(t), e && toast("Sync failed: " + syncErr)
+      syncErr = "AbortError" === t.name ? "timeout" : t.message || String(t), (e || /code/i.test(syncErr) && !window._codeWarned) && (window._codeWarned = !e, toast("Sync failed: " + syncErr))
     } finally {
       syncBusy = !1, renderSync()
     }

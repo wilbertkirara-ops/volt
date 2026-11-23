@@ -246,6 +246,7 @@
     <p>Enter your first and last name. It is recorded on every point and in the reports.</p>
     <div class="field req"><label for="g_name">Full name</label><input id="g_name" placeholder="e.g. Jean Bosco NIYONZIMA" autocapitalize="words"></div>
     <div class="field"><label for="g_tel">Phone <em>optional</em></label><input id="g_tel" inputmode="tel" placeholder="07XXXXXXXX"></div>
+    <div class="field"><label for="g_code">Sync code <em>given by the supervisor</em></label><input id="g_code" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. K7QM4R"></div>
     <button class="act" id="g_ok">Continue</button>
     <div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:11.5px;color:var(--muted);margin-top:14px;text-align:left"><img src="author.png" alt="Eng. Wilbert KIRARA" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #0ea5e9;flex:0 0 auto"><div>Voltline — created by <b>Eng. Wilbert KIRARA</b>,<br>Expert Surveyor in Electrical Power Lines</div></div>
   </div>
@@ -428,6 +429,8 @@
       <div class="pad exgrid">
         <div class="note">When the phone has network, every saved point and its stamped photo go to the project Google Sheet (one tab per layer) and to the folder of its transformer in Google Drive (Voltline - Lot 2 › Kirehe / Ngoma District): <b>Information Data</b> (Excel customers + CSV), <b>KMZ</b>, <b>Shapefile</b>, <b>Photos</b> (Transformer / Poles / Customers) and <b>Backup</b>. The files are refreshed at most every 20 minutes. Points stay on the phone as well.</div>
         <div id="syncInfo" style="font-size:13px;font-weight:600"></div>
+        <div class="field" style="margin:0"><label for="syncCodeIn">Your sync code <em>personal, given by the supervisor</em></label><input id="syncCodeIn" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. K7QM4R"></div>
+        <button class="act ghost" onclick="saveSyncCode()">🔑 Save the code</button>
         <button class="act" onclick="syncNow(true)">⟳ Sync now</button>
         <button class="act ghost" onclick="driveNow()">📁 Update the Drive folders now</button>
         <div id="driveInfo" class="note" style="margin:0"></div>
