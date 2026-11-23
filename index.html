@@ -216,6 +216,21 @@
   #mapsheet label{margin-top:10px}
   .ptlbl{background:rgba(15,23,42,.82)!important;color:#fff!important;border:0!important;font:700 11px var(--sans)!important;padding:1px 5px!important;border-radius:5px!important;box-shadow:none!important}
   .ptlbl::before{display:none!important}
+  /* ---------- transformer quick switch ---------- */
+  .trfsw:empty{display:none}
+  .trfsw{margin:0 0 10px}
+  .trfsw-h{font:700 10.5px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px}
+  .trfsw-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .trfsw-b{flex:0 0 auto;border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:7px 12px;font:600 12.5px var(--sans);color:var(--ink);white-space:nowrap;cursor:pointer}
+  .trfsw-b b{font-family:var(--mono);margin-left:4px;color:var(--muted)}
+  .trfsw-b.on{background:#0f172a;border-color:#0f172a;color:#fff}.trfsw-b.on b{color:#7dd3fc}
+  .trfauto{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#f1f5f9;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 10px;font-size:13px}
+  .trfauto span{color:var(--muted);font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-weight:700}
+
+  img.au{width:16px;height:16px;border-radius:50%;object-fit:cover;vertical-align:-4px;margin-right:4px;border:1px solid #7dd3fc}
+  .brand small.by img.au{width:17px;height:17px;margin-right:3px;vertical-align:-5px}
+  .credit img.au{width:20px;height:20px;vertical-align:-6px;border-color:#0ea5e9}
+  img.aubig{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #7dd3fc;flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -232,14 +247,14 @@
     <div class="field req"><label for="g_name">Full name</label><input id="g_name" placeholder="e.g. Jean Bosco NIYONZIMA" autocapitalize="words"></div>
     <div class="field"><label for="g_tel">Phone <em>optional</em></label><input id="g_tel" inputmode="tel" placeholder="07XXXXXXXX"></div>
     <button class="act" id="g_ok">Continue</button>
-    <div style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:12px">Voltline — created by <b>Eng. Wilbert KIRARA</b>,<br>Expert Surveyor in Electrical Power Lines</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:11.5px;color:var(--muted);margin-top:14px;text-align:left"><img src="author.png" alt="Eng. Wilbert KIRARA" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #0ea5e9;flex:0 0 auto"><div>Voltline — created by <b>Eng. Wilbert KIRARA</b>,<br>Expert Surveyor in Electrical Power Lines</div></div>
   </div>
 </div>
 
 <header>
   <div class="hrow">
     <img class="logo" src="logo-mark.png" alt="Voltline">
-    <div class="brand">Voltline<small id="zonelbl">KIREHE &amp; NGOMA · LV NETWORK AS-BUILT</small><small class="by">by Eng. Wilbert KIRARA</small></div>
+    <div class="brand">Voltline<small id="zonelbl">KIREHE &amp; NGOMA · LV NETWORK AS-BUILT</small><small class="by"><img class="au" src="author.png" alt="">Eng. Wilbert KIRARA</small></div>
     <span class="hsp"></span>
     <button class="sync off" id="syncChip" onclick="syncNow(true)">☁ off</button>
     <button class="agent" id="agentpill">👤 —</button>
@@ -327,6 +342,7 @@
       </div>
     </details>
 
+    <div id="trfswitch" class="trfsw"></div>
     <div class="chips" id="chips"></div>
 
     <div class="card flush">
@@ -373,6 +389,7 @@
   <section id="tab-list" hidden>
     <div class="card">
       <div class="grid2">
+        <div class="field" style="margin:0;grid-column:1/-1"><label for="r_trf">Transformer</label><select id="r_trf"></select></div>
         <div class="field" style="margin:0"><label for="r_filter">Type</label><select id="r_filter"></select></div>
         <div class="field" style="margin:0"><label for="r_search">Search</label><input id="r_search" placeholder="Pole, house, meter, name"></div>
       </div>
@@ -409,9 +426,11 @@
     <div class="card flush">
       <div class="ch">☁ Automatic sync (Google Drive)</div>
       <div class="pad exgrid">
-        <div class="note">When the phone has network, every saved point and its stamped photo go to the project Google Sheet (one tab per layer) and Drive folder. Points stay on the phone as well.</div>
+        <div class="note">When the phone has network, every saved point and its stamped photo go to the project Google Sheet (one tab per layer) and to the folder of its transformer in Google Drive (Voltline - Lot 2 › Kirehe / Ngoma District): <b>Information Data</b> (Excel customers + CSV), <b>KMZ</b>, <b>Shapefile</b>, <b>Photos</b> (Transformer / Poles / Customers) and <b>Backup</b>. The files are refreshed at most every 20 minutes. Points stay on the phone as well.</div>
         <div id="syncInfo" style="font-size:13px;font-weight:600"></div>
         <button class="act" onclick="syncNow(true)">⟳ Sync now</button>
+        <button class="act ghost" onclick="driveNow()">📁 Update the Drive folders now</button>
+        <div id="driveInfo" class="note" style="margin:0"></div>
         <details class="sub"><summary>Server settings (supervisor)</summary>
           <div class="field" style="margin-top:8px"><label for="syncUrlIn">Sync server URL (Apps Script /exec)</label><input id="syncUrlIn" placeholder="https://script.google.com/macros/s/…/exec"></div>
           <button class="act ghost" onclick="saveSyncUrl()">Test &amp; save</button>
@@ -448,7 +467,7 @@
       <div class="pad exgrid">
         <button class="act ghost hidden" id="installBtn" onclick="doInstall()">⤓ Install on this phone</button>
         <button class="act ghost" onclick="prepareOCR(true)">🪪 Prepare the ID-card reader for offline use</button>
-        <div class="about"><div class="mono">WK</div><div><b>Eng. Wilbert KIRARA</b><span>Expert Surveyor in Electrical Power Lines<br>Creator of WK LV As-Built and WK Connect Survey</span></div></div>
+        <div class="about"><img class="aubig" src="author.png" alt="Eng. Wilbert KIRARA"><div><b>Eng. Wilbert KIRARA</b><span>Expert Surveyor in Electrical Power Lines<br>Creator of Voltline, WK LV As-Built and WK Connect Survey</span></div></div>
         <div class="note" id="appver"></div>
       </div>
     </div>
@@ -460,7 +479,7 @@
     <div id="refbody"></div>
   </section>
 </div>
-<div class="credit">Voltline · RUEAP Lot 2, Kirehe &amp; Ngoma · created by <b>Eng. Wilbert KIRARA</b> · Expert Surveyor in Electrical Power Lines</div>
+<div class="credit">Voltline · RUEAP Lot 2, Kirehe &amp; Ngoma · created by <img class="au" src="author.png" alt="Eng. Wilbert KIRARA"><b>Eng. Wilbert KIRARA</b> · Expert Surveyor in Electrical Power Lines</div>
 
 <div class="savebar" id="savebar"><div class="in"><div id="savestate" style="color:var(--good)">✓ saved on phone</div><button class="act" id="btn_save">💾 Save point</button></div></div>
 <div class="toast" id="toast"></div>

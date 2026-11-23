@@ -444,7 +444,7 @@ var TRF_TABLE = {
   lastSendN = 0,
   repeatOn = !0,
   CARRY = {
-    pole: ["Structure", "Height_m", "Wooden_Pol", "Assembly", "Conductor", "TRF_Name"],
+    pole: ["Structure", "Height_m", "Wooden_Pol", "Assembly", "Conductor"],
     cust: ["Service_Cable", "Category", "TYPE OF CUSTOMMER", "Phase", "Meter Type", "District", "Sector", "Cell", "Village"],
     trf: []
   },
@@ -458,11 +458,20 @@ var TRF_TABLE = {
     cust: {},
     trf: {}
   },
-  roster = [],
+  trfMem = {};
+
+function trfOf(e) {
+  return "cust" === e.type ? custTrf(e) : recTrf(e)
+}
+
+function inTrf(e, t) {
+  return trfOf(e) === t
+}
+var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-23-v7",
+  BUILD = "2026-11-23-v8",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -817,7 +826,8 @@ function persist() {
     agent: agent,
     lastSend: lastSend,
     lastSendN: lastSendN,
-    drafts: drafts
+    drafts: drafts,
+    trfMem: trfMem
   });
   return mem[KEY] = e, idbSet(KEY, e).then(function() {
     lastSaveOk = !0;
@@ -843,7 +853,7 @@ function restore() {
     } catch (e) {}
     if (e || (e = mem[KEY]), e) try {
       var t = JSON.parse(e);
-      for (var n in t.records && void 0 !== t.records.length && (records = t.records), t.drafts && (drafts = t.drafts), lastSend = t.lastSend || "", lastSendN = t.lastSendN || 0, t.ctx || {}) ctx[n] = t.ctx[n];
+      for (var n in t.records && void 0 !== t.records.length && (records = t.records), t.drafts && (drafts = t.drafts), t.trfMem && (trfMem = t.trfMem), lastSend = t.lastSend || "", lastSendN = t.lastSendN || 0, t.ctx || {}) ctx[n] = t.ctx[n];
       for (var o in t.agent || {}) agent[o] = t.agent[o]
     } catch (e) {}
   })
@@ -943,7 +953,7 @@ function badges() {
     var n = unexportedCount();
     t.textContent = n, t.style.display = n > 0 ? "" : "none", t.style.background = n > 0 ? "var(--live)" : ""
   }
-  $("#chips") && $("#chips").children.length && renderChips(), $("#zonelbl").textContent = [ctx.district, ctx.trf, ctx.village].filter(Boolean).join(" · ") || "Kirehe & Ngoma · choose a transformer"
+  $("#chips") && $("#chips").children.length && renderChips(), $("#zonelbl").textContent = [ctx.district, ctx.trf, ctx.village].filter(Boolean).join(" · ") || "Kirehe & Ngoma · choose a transformer", renderTrfSwitch()
 }
 $("#g_ok").onclick = function() {
   var e = $("#g_name").value.trim().replace(/\s+/g, " ");
@@ -974,7 +984,7 @@ $("#g_ok").onclick = function() {
   }
 }), Object.keys(ctx).forEach(function(e) {
   var t = $("#c_" + e);
-  t && (t.oninput = t.onchange = function() {
+  "trf" !== e && "sector" !== e && "cell" !== e && "village" !== e && t && (t.oninput = t.onchange = function() {
     ctx[e] = t.value, persist(), badges(), "function" == typeof updateSetup && updateSetup()
   })
 });
@@ -1459,6 +1469,8 @@ function satDiagShow() {
     e.style.display = "block", e.innerHTML = navigator.onLine ? '<b style="color:var(--live)">The satellite images are not arriving.</b> The phone has a connection but the map server (Esri) does not answer. Try again in a moment; the diagram and the Google Earth file still work.' : '<b style="color:var(--live)">No internet, and this area is not saved offline.</b> With internet (Wi-Fi or mobile data), use Save map offline below before going to the field.'
   }
 }
+var SAT_NATIVE_Z = 18,
+  MAP_MAX_Z = 22;
 
 function makeSatLayer(e) {
   return new(e.TileLayer.extend({
@@ -1488,8 +1500,8 @@ function makeSatLayer(e) {
       }), n
     }
   }))(SAT_URL + "{z}/{y}/{x}", {
-    maxZoom: 21,
-    maxNativeZoom: 18
+    maxZoom: MAP_MAX_Z,
+    maxNativeZoom: SAT_NATIVE_Z
   })
 }
 
@@ -1652,7 +1664,11 @@ function showSat(e) {
   LMap || ($("#satnote").style.display = "block", $("#satnote").textContent = "Loading satellite…"), loadLeaflet().then(function(t) {
     if ($("#minimap").style.display = "none", $("#satmap").style.display = "block", $("#satnote").style.display = "none", mapBtns(!0), !LMap) {
       LMap = t.map("satmap", {
-        attributionControl: !1
+        attributionControl: !1,
+        maxZoom: MAP_MAX_Z,
+        zoomSnap: .5,
+        zoomDelta: 1,
+        wheelPxPerZoomLevel: 90
       });
       var n = makeSatLayer(t);
       n.on("tileload", function() {
@@ -1689,6 +1705,16 @@ function showSat(e) {
         className: "ptlbl"
       }), l.on("click", function() {
         pointTap(e.id)
+      }), l.on("drag", function() {
+        var e = l.getLatLng(),
+          t = toGrid(e.lat, e.lng),
+          n = "E " + t.x.toFixed(2) + "  N " + t.y.toFixed(2);
+        l._coordTip ? l.setTooltipContent(n) : (l.unbindTooltip(), l.bindTooltip(n, {
+          permanent: !0,
+          direction: "top",
+          offset: [0, -12],
+          className: "ptlbl"
+        }).openTooltip(), l._coordTip = 1)
       }), l.on("dragend", function() {
         var t = l.getLatLng();
         movePoint(e, t.lat, t.lng)
@@ -1730,7 +1756,7 @@ function showSat(e) {
     }, 100);
     else if (o.length) LMap.fitBounds(o, {
       padding: [30, 30],
-      maxZoom: 19
+      maxZoom: mapFs ? 20 : 19
     }), setTimeout(function() {
       LMap.invalidateSize()
     }, 100);
@@ -1835,7 +1861,7 @@ function openMapFs() {
     fsButtons(), !satVisible() && navigator.onLine, showSat(!0), setTimeout(function() {
       LMap && LMap.invalidateSize()
     }, 120), setTimeout(function() {
-      LMap && LMap.invalidateSize()
+      LMap && (LMap.invalidateSize(), LMap.getZoom() < 19 && LMap.setZoom(19))
     }, 500)
   }
 }
@@ -1856,7 +1882,7 @@ function closeMapFs(e) {
 }
 
 function toggleMove() {
-  moveMode = !moveMode, fsButtons(), satVisible() && showSat(!0), toast(moveMode ? "Move points: ON — drag a point to its true position" : "Points locked")
+  moveMode = !moveMode, fsButtons(), satVisible() && showSat(!0), moveMode && LMap && satVisible() && LMap.getZoom() < 20 && LMap.setZoom(20), toast(moveMode ? "Move points: ON — drag a point to its true position" : "Points locked")
 }
 
 function fsButtons() {
@@ -1881,7 +1907,7 @@ function movePoint(e, t, n) {
     })
   };
   var o = toGrid(t, n);
-  e.lat = t, e.lon = n, e.x = o.x, e.y = o.y, e.manual = !0, setAdminProps(e.props, o.x, o.y), e.updatedAt = (new Date).toISOString(), e.editedBy = agent.name, recomputeDerived(), persist(), drawMap(), badges(), fsButtons(), showSat(!0), sheetId === e.id && showSheet(e.id), toast("Moved " + nameOf(e) + " — ↶ Undo is on the map bar"), "function" == typeof syncSoon && syncSoon()
+  e.lat = t, e.lon = n, e.x = o.x, e.y = o.y, e.manual = !0, setAdminProps(e.props, o.x, o.y), e.updatedAt = (new Date).toISOString(), e.editedBy = agent.name, recomputeDerived(), persist(), drawMap(), badges(), fsButtons(), showSat(!0), sheetId === e.id && showSheet(e.id), toast("Moved " + nameOf(e) + " → E " + o.x.toFixed(2) + "  N " + o.y.toFixed(2) + " · ↶ Undo on the map bar"), "function" == typeof syncSoon && syncSoon()
 }
 
 function undoMove() {
@@ -1918,7 +1944,7 @@ function showSheet(e) {
     var r = t.props,
       a = recTrf(t) || custTrf(t),
       i = [];
-    "pole" === t.type ? (d("Transformer", a), d("Span (m)", r.Span_Length_m), d("Conductor", r.Conductor), d("Assembly", r.Assembly), d("Pole class", r.Wooden_Pol)) : "cust" === t.type ? (d("Name", [r["FIRST NAME"], r["Second Name"]].filter(Boolean).join(" ")), d("Meter", r.Meter_number), d("Cable (m)", r["REAL LENGTH OF SERVICE CABLE"]), d("Pole in list", r.Pole_in_list), d("Transformer", a)) : (d("Capacity (kVA)", r.Capacity_kVA), d("Support", r.Support)), d("Village", [r.Cell, r.Village].filter(Boolean).join(" › ")), d("Position", (t.manual ? "moved on map" : "±" + Number(t.acc || 0).toFixed(1) + " m") + " · " + locDate(t.time));
+    "pole" === t.type ? (d("Transformer", a), d("Span (m)", r.Span_Length_m), d("Conductor", r.Conductor), d("Assembly", r.Assembly), d("Pole class", r.Wooden_Pol)) : "cust" === t.type ? (d("Name", [r["FIRST NAME"], r["Second Name"]].filter(Boolean).join(" ")), d("Meter", r.Meter_number), d("Cable (m)", r["REAL LENGTH OF SERVICE CABLE"]), d("Pole in list", r.Pole_in_list), d("Transformer", a)) : (d("Capacity (kVA)", r.Capacity_kVA), d("Support", r.Support)), d("Village", [r.Cell, r.Village].filter(Boolean).join(" › ")), d("Position", (t.manual ? "moved on map" : "±" + Number(t.acc || 0).toFixed(1) + " m") + " · " + locDate(t.time)), d("E (X)", null != t.x ? t.x.toFixed(2) : ""), d("N (Y)", null != t.y ? t.y.toFixed(2) : "");
     var s = "";
     if ("pole" === t.type || "cust" === t.type) {
       var l = "pole" === t.type ? "From_Pole" : "POLES",
@@ -1949,7 +1975,7 @@ function zoomTo(e) {
   var t = records.filter(function(t) {
     return t.id === e
   })[0];
-  t && LMap && LMap.setView([t.lat, t.lon], Math.max(LMap.getZoom(), 19))
+  t && LMap && LMap.setView([t.lat, t.lon], Math.max(LMap.getZoom(), 21))
 }
 
 function mapBtns(e) {
@@ -2010,7 +2036,9 @@ var CHIP_ICON = {
 function renderChips() {
   $("#chips").innerHTML = TYPE_ORDER.map(function(e, t) {
     var n = SCHEMA[e],
-      o = ofType(e).length;
+      o = ofType(e).filter(function(e) {
+        return !ctx.trf || inTrf(e, ctx.trf)
+      }).length;
     return '<button class="chip" style="--c:' + CHIP_COLOR[e] + '" data-k="' + e + '" aria-pressed="' + (e === active) + '"><span class="step">' + (t + 1) + '</span><span class="ic">' + (CHIP_ICON[e] || "") + '</span><span class="cl">' + n.label + '</span><span class="cn">' + (o ? o + " saved" : "none yet") + "</span></button>"
   }).join(""), Array.prototype.forEach.call($("#chips").querySelectorAll(".chip"), function(e) {
     e.onclick = function() {
@@ -2322,9 +2350,13 @@ function isSurveyed(e, t) {
   return e.meter ? !!t.meters[e.meter] : e.id && t.ids[e.id + "|"] || e.house && t.houses[e.house.toUpperCase()] || !1
 }
 
+function listHouse(e) {
+  return String(e.house || e.sn || "").trim()
+}
+
 function custProps(e) {
   var t = {};
-  if (e.house && (t["HSE No."] = e.house), e.first && (t["FIRST NAME"] = e.first), e.last && (t["Second Name"] = e.last), e.category) {
+  if (t["HSE No."] = listHouse(e), e.first && (t["FIRST NAME"] = e.first), e.last && (t["Second Name"] = e.last), e.category) {
     var n = e.category.toUpperCase();
     t.Category = /COMMERC/.test(n) ? "COMMERCIAL" : /NON/.test(n) ? "NON RESIDENTIAL" : /INDUS/.test(n) ? "INDUSTRIAL" : /PUBLIC|INSTIT/.test(n) ? "PUBLIC INSTITUTION" : "RESIDENTIAL"
   }
@@ -2333,7 +2365,7 @@ function custProps(e) {
 
 function selectCustomer(e) {
   var t = custProps(e);
-  e.pole && (t.POLES = normPoleNo(e.pole)), pendingPole = e.pole || "", drafts.cust = t, editingId = null, selectedCust = e, renderForm(), toast("Selected " + ([e.first, e.last].filter(Boolean).join(" ") || "customer") + (e.house ? " (house " + e.house + ")" : "") + " — take the GPS at the meter, then Save"), window.scrollTo(0, document.getElementById("formhead").offsetTop - 10)
+  e.pole && (t.POLES = normPoleNo(e.pole)), pendingPole = e.pole || "", drafts.cust = t, editingId = null, selectedCust = e, renderForm(), toast("Selected " + ([e.first, e.last].filter(Boolean).join(" ") || "customer") + (listHouse(e) ? " (house " + listHouse(e) + ")" : "") + " — take the GPS at the meter, then Save"), window.scrollTo(0, document.getElementById("formhead").offsetTop - 10)
 }
 
 function idTools() {
@@ -2354,7 +2386,7 @@ function renderPicker() {
       if (selectedCust) {
         var t = selectedCust;
         var n = [
-          ["House no", t.house],
+          ["House no", t.house || (t.sn ? t.sn + " (list NO — house no. empty in list)" : "")],
           ["Pole in list", normPoleNo(t.pole)],
           ["Cable in list (m)", t.length],
           ["Category", (a = t.category, a ? (a = a.toUpperCase(), /COMMERC/.test(a) ? "COMMERCIAL" : /NON/.test(a) ? "NON RESIDENTIAL" : /INDUS/.test(a) ? "INDUSTRIAL" : /PUBLIC|INSTIT/.test(a) ? "PUBLIC INSTITUTION" : "RESIDENTIAL") : "")],
@@ -2463,7 +2495,7 @@ function renderForm(e) {
   var r = [];
   "cust" === active && (r = ["District", "Sector", "Cell", "Village", "Distance source", "TYPE OF CUSTOMMER", "Meter Type", "READYBOARD", "Pole_in_list", "Length_in_list"], selectedCust && (r = r.concat(["HSE No.", "FIRST NAME", "Second Name", "Category", "Phase", "Meter_number", "ID", "UPI", "Phone_number"])));
   var a = t.fields.filter(function(e) {
-      return ("pole" !== active || "TRF_Name" !== e.k) && !(r.indexOf(e.k) >= 0)
+      return ("pole" !== active && "trf" !== active || "TRF_Name" !== e.k) && !(r.indexOf(e.k) >= 0)
     }),
     i = (SECTIONS[active] || []).map(function(e) {
       return {
@@ -2488,7 +2520,7 @@ function renderForm(e) {
   }) : i.push({
     t: "",
     f: l
-  })), $("#form").innerHTML = i.filter(function(e) {
+  })), $("#form").innerHTML = ("pole" === active || "trf" === active ? '<div class="trfauto"><span>Transformer · automatic</span><b>' + esc(formTrf() || "choose it in the zone above") + "</b></div>" : "") + i.filter(function(e) {
     return e.f.length
   }).map(function(n) {
     return (n.t ? '<div class="fsec">' + esc(n.t) + "</div>" : "") + '<div class="fgrid">' + n.f.map(function(n) {
@@ -2643,6 +2675,49 @@ function recalc() {
   var u = $("#liveflags");
   u && (u.innerHTML = e.length ? '<div class="flag warnlvl" style="border-left-color:var(--earth)">' + e.join("<br>") + "</div>" : "")
 }
+
+function workedTrfs() {
+  var e = {};
+  return records.forEach(function(t) {
+    if ("span" !== t.type) {
+      var n = trfOf(t) || "(no transformer)";
+      e[n] = (e[n] || 0) + 1
+    }
+  }), e
+}
+
+function fillRecTrf() {
+  var e = $("#r_trf");
+  if (e) {
+    var t = workedTrfs(),
+      n = e.dataset.user ? e.value : ctx.trf && t[ctx.trf] ? ctx.trf : "";
+    e.innerHTML = '<option value="">All transformers (' + records.filter(function(e) {
+      return "span" !== e.type
+    }).length + ")</option>" + Object.keys(t).sort().map(function(e) {
+      return '<option value="' + esc(e) + '"' + (e === n ? " selected" : "") + ">" + esc(e) + " (" + t[e] + ")</option>"
+    }).join(""), e.value = n
+  }
+}
+
+function renderTrfSwitch() {
+  var e = $("#trfswitch");
+  if (e) {
+    var t = workedTrfs(),
+      n = Object.keys(t).filter(function(e) {
+        return "(no transformer)" !== e
+      });
+    ctx.trf && n.indexOf(ctx.trf) < 0 && n.unshift(ctx.trf), n.length < 2 && (1 !== n.length || n[0] === ctx.trf) ? e.innerHTML = "" : (e.innerHTML = '<div class="trfsw-h">Transformers worked on — tap to switch, nothing is lost</div><div class="trfsw-row">' + n.sort().map(function(e) {
+      var n = e === ctx.trf,
+        o = trfMem[e] && trfMem[e].fix && !n;
+      return '<button type="button" class="trfsw-b' + (n ? " on" : "") + '" data-t="' + esc(e) + '">' + esc(e) + " <b>" + (t[e] || 0) + "</b>" + (o ? " ●" : "") + "</button>"
+    }).join("") + "</div>", Array.prototype.forEach.call(e.querySelectorAll(".trfsw-b"), function(e) {
+      e.onclick = function() {
+        var t = e.getAttribute("data-t");
+        t !== ctx.trf && (chooseTrf(t), toast("Now on " + t + " — its points and unsaved form are back"))
+      }
+    }))
+  }
+}
 $("#btn_save").onclick = function() {
   var e = SCHEMA[active];
   if (cap) toast("Position capture still running — tap “Use now” or wait");
@@ -2665,13 +2740,13 @@ $("#btn_save").onclick = function() {
                   var c = "cust" === active && selectedCust ? custProps(selectedCust) : {};
                   s = String(null != c[i.k] ? c[i.k] : (drafts[active] || {})[i.k] || "").trim()
                 }
-                if ("TRF_Name" !== i.k || editingId || (s = ctx.trf || s), "POLES" === i.k && (s = normPoleNo(s)), i.req && !s) return toast(lbl(i.k) + " is required"), void(l && l.focus());
+                if ("TRF_Name" !== i.k || "pole" !== active && "trf" !== active || (s = formTrf() || s), "POLES" === i.k && (s = normPoleNo(s)), "HSE No." !== i.k || s || "cust" !== active || (s = selectedCust && listHouse(selectedCust) || nextHouseNo()), i.req && !s) return toast(lbl(i.k) + " is required"), void(l && l.focus());
                 r[i.k] = s
               }
             }
             fix && setAdminProps(r, fix.x, fix.y) || ["District", "Sector", "Cell", "Village"].forEach(function(e) {
               r[e] || (r[e] = ctx[e.toLowerCase()] || "")
-            }), "cust" === active && (r["Second Name"] = String(r["Second Name"] || "").replace(/\s+/g, " ").trim().toLocaleUpperCase("en")), "pole" === active && (r.Pole_Numbe = normPoleNo(r.Pole_Numbe), r.From_Pole = normPoleNo(r.From_Pole) || r.From_Pole), "pole" !== active && "trf" !== active || r.TRF_Name || (r.TRF_Name = ctx.trf || "");
+            }), "cust" === active && (r["Second Name"] = String(r["Second Name"] || "").replace(/\s+/g, " ").trim().toLocaleUpperCase("en")), "pole" === active && (r.Pole_Numbe = normPoleNo(r.Pole_Numbe), r.From_Pole = normPoleNo(r.From_Pole) || r.From_Pole), "pole" !== active && "trf" !== active || r.TRF_Name || (r.TRF_Name = formTrf() || "");
             var u = num(ctx.drop);
             if (null === u && (u = 6), "cust" === active) {
               var p = poleByNo(r.POLES),
@@ -2712,7 +2787,9 @@ $("#btn_save").onclick = function() {
                 trf: ctx.trf || "",
                 createdAt: (new Date).toISOString(),
                 updatedAt: (new Date).toISOString()
-              }), photoBlob && savePhoto(g, photoBlob), toast("✓ " + e.label + " saved on this phone, " + ofType(active).length + " so far"), drafts[active] = {}
+              }), photoBlob && savePhoto(g, photoBlob), toast("✓ " + e.label + " saved on this phone — " + ofType(active).filter(function(e) {
+                return inTrf(e, trfOf(records[records.length - 1]))
+              }).length + " on " + (trfOf(records[records.length - 1]) || "this transformer")), renderTrfSwitch(), drafts[active] = {}
             }
             recomputeDerived(), persist().then(function() {
               lastSaveOk || toast("⚠ Not saved to disk. Open Send and export now.")
@@ -2753,7 +2830,9 @@ $("#btn_save").onclick = function() {
   }
 }, $("#r_filter").innerHTML = '<option value="">All sheets</option>' + TYPE_ORDER.map(function(e) {
   return '<option value="' + e + '">' + SCHEMA[e].label + "</option>"
-}).join(""), $("#r_filter").onchange = renderRecords, $("#r_search").oninput = renderRecords;
+}).join(""), $("#r_filter").onchange = renderRecords, $("#r_search").oninput = renderRecords, $("#r_trf") && ($("#r_trf").onchange = function() {
+  $("#r_trf").dataset.user = "1", renderRecords()
+});
 var THUMBS = {};
 
 function savePhoto(e, t) {
@@ -2802,12 +2881,14 @@ function editRecord(e) {
 }
 
 function renderRecords() {
+  fillRecTrf();
   var e = $("#r_filter").value,
     t = $("#r_search").value.toLowerCase(),
-    n = records.filter(function(n) {
-      return (!e || n.type === e) && (!t || JSON.stringify(n.props).toLowerCase().indexOf(t) >= 0)
+    n = $("#r_trf") ? $("#r_trf").value : "",
+    o = records.filter(function(o) {
+      return (!e || o.type === e) && (!n || inTrf(o, n)) && (!t || JSON.stringify(o.props).toLowerCase().indexOf(t) >= 0)
     }).slice().reverse();
-  n.length ? ($("#reclist").innerHTML = n.map(function(e) {
+  o.length ? ($("#reclist").innerHTML = o.map(function(e) {
     var t = SCHEMA[e.type],
       n = "";
     return n = "cust" === e.type ? [e.props["FIRST NAME"], e.props["Second Name"]].filter(Boolean).join(" ") + " · " + (e.props.POLES || "") : "span" === e.type ? e.props.From_Pole + " → " + e.props.To_Pole + " · " + (e.props.Length_m || "?") + " m" : e.props.Assembly || e.props.Capacity_kVA || "", '<div class="rec" style="--c:' + t.color + '"><div class="tag">' + t.label + '</div><div class="id">' + esc(e.props[t.id] || "(no number)") + '</div><div class="note" style="margin-top:2px">' + esc(n) + '</div><div class="meta">' + locDate(e.time) + " " + locTime(e.time) + " · X " + e.x.toFixed(1) + " · Y " + e.y.toFixed(1) + " · " + (e.manual ? "typed" : "±" + (e.acc || 0).toFixed(1) + "m") + "</div>" + (e.photo ? '<img data-pid="' + esc(e.id) + '" class="thumb" alt="">' : "") + '<div class="tools"><button data-ed="' + e.id + '">Edit</button><button data-del="' + e.id + '">Delete</button></div></div>'
@@ -3046,11 +3127,11 @@ function renderQA() {
 }
 
 function renderSend() {
-  renderQA(), renderSync(), storageInfo(), updateNet();
+  renderQA(), renderSync(), renderDriveInfo(), storageInfo(), updateNet();
   var e = $("#syncUrlIn");
   e && !e.value && (e.value = syncUrl());
   var t = $("#appver");
-  t && (t.textContent = APP_NAME + " · build " + BUILD + " · © 2026 Eng. Wilbert KIRARA"), $("#counts").innerHTML = TYPE_ORDER.map(function(e) {
+  t && (t.innerHTML = esc(APP_NAME + " · build " + BUILD + " · © 2026 ") + '<img class="au" src="author.png" alt="">Eng. Wilbert KIRARA'), $("#counts").innerHTML = TYPE_ORDER.map(function(e) {
     return '<div class="cnt"><span>' + SCHEMA[e].label + "</span><b>" + ofType(e).length + "</b></div>"
   }).join("") + '<div class="cnt"><span>LV Span <span class="note">derived</span></span><b>' + spans().length + '</b></div><div class="cnt" style="border:0"><span><b>Total</b></span><b>' + records.length + "</b></div>";
   var n = TYPE_ORDER.concat(["span"]).map(function(e) {
@@ -3188,9 +3269,9 @@ function buildKML(e) {
   var t = [];
 
   function n(n, o, r, a, i, s) {
-    r = s && void 0 !== e ? kmlDesc(s.type, s, s.photo ? e + photoName(s) : "") : kmlEsc(r), t.push("<Placemark><name>" + kmlEsc(o) + "</name><description>" + r + "</description><styleUrl>#" + n + "</styleUrl><Point><coordinates>" + a.toFixed(8) + "," + i.toFixed(8) + ",0</coordinates></Point></Placemark>")
+    r = s && void 0 !== e ? kmlDesc(s.type, s, s.photo ? "function" == typeof e ? e(s) : e + photoName(s) : "") : kmlEsc(r), t.push("<Placemark><name>" + kmlEsc(o) + "</name><description>" + r + "</description><styleUrl>#" + n + "</styleUrl><Point><coordinates>" + a.toFixed(8) + "," + i.toFixed(8) + ",0</coordinates></Point></Placemark>")
   }
-  return t.push('<?xml version="1.0" encoding="UTF-8"?>'), t.push('<kml xmlns="http://www.opengis.net/kml/2.2"><Document>'), t.push("<name>" + kmlEsc(APP_NAME + " — " + (ctx.trf || "survey")) + "</name><description>" + kmlEsc(PROJECT_TITLE) + "</description>"), t.push('<Style id="pole"><IconStyle><color>ff759b8b</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>'), t.push('<Style id="trf"><IconStyle><color>ff2b3ad9</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/electronics.png</href></Icon></IconStyle></Style>'), t.push('<Style id="cust"><IconStyle><color>ff5b7912</color><scale>0.8</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/homegardenbusiness.png</href></Icon></IconStyle></Style>'), t.push('<Style id="line"><LineStyle><color>ffa35f2e</color><width>3</width></LineStyle></Style>'), t.push('<Style id="drop"><LineStyle><color>a05b7912</color><width>1</width></LineStyle></Style>'), t.push("<Folder><name>LV lines</name>"), spans().forEach(function(e) {
+  return t.push('<?xml version="1.0" encoding="UTF-8"?>'), t.push('<kml xmlns="http://www.opengis.net/kml/2.2"><Document>'), t.push("<name>" + kmlEsc(APP_NAME + " — " + dataLabel()) + "</name><description>" + kmlEsc(PROJECT_TITLE) + "</description>"), t.push('<Style id="pole"><IconStyle><color>ff759b8b</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>'), t.push('<Style id="trf"><IconStyle><color>ff2b3ad9</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/electronics.png</href></Icon></IconStyle></Style>'), t.push('<Style id="cust"><IconStyle><color>ff5b7912</color><scale>0.8</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/homegardenbusiness.png</href></Icon></IconStyle></Style>'), t.push('<Style id="line"><LineStyle><color>ffa35f2e</color><width>3</width></LineStyle></Style>'), t.push('<Style id="drop"><LineStyle><color>a05b7912</color><width>1</width></LineStyle></Style>'), t.push("<Folder><name>LV lines</name>"), spans().forEach(function(e) {
     var n = e.a,
       o = e.pole;
     n && o && t.push("<Placemark><name>" + kmlEsc(e.Span_ID) + "</name><description>" + kmlEsc((e.Conductor || "") + " " + e.Length_m.toFixed(1) + " m") + '</description><ExtendedData><Data name="From"><value>' + kmlEsc(e.From_Pole) + '</value></Data><Data name="To"><value>' + kmlEsc(e.To_Pole) + '</value></Data><Data name="Length_m"><value>' + e.Length_m.toFixed(2) + "</value></Data></ExtendedData><styleUrl>#line</styleUrl><LineString><tessellate>1</tessellate><coordinates>" + n.lon.toFixed(8) + "," + n.lat.toFixed(8) + ",0 " + o.lon.toFixed(8) + "," + o.lat.toFixed(8) + ",0</coordinates></LineString></Placemark>")
@@ -3290,8 +3371,15 @@ async function photoFiles(e, t) {
   return n
 }
 
+function dataLabel() {
+  var e = Object.keys(workedTrfs()).filter(function(e) {
+    return "(no transformer)" !== e
+  });
+  return 1 === e.length ? e[0] : e.length > 1 ? "Voltline_" + e.length + "_transformers" : ctx.trf || "survey"
+}
+
 function baseName() {
-  return agentSlug() + "_" + String(ctx.trf || "survey").replace(/[^A-Za-z0-9_-]+/g, "_") + "_" + stamp()
+  return agentSlug() + "_" + String(dataLabel()).replace(/[^A-Za-z0-9_-]+/g, "_") + "_" + stamp()
 }
 
 function kmlDesc(e, t, n) {
@@ -3301,7 +3389,7 @@ function kmlDesc(e, t, n) {
       var n = r[t];
       return "" === n || null == n ? "" : '<tr><td style="color:#5E6E72;padding:2px 10px 2px 0;white-space:nowrap">' + kmlEsc(lbl(e)) + '</td><td style="font-weight:bold">' + kmlEsc(n) + "</td></tr>"
     }).join("") + "</table>";
-  return n && (a = '<img src="' + n + '" width="380"/><br/>' + a), "<![CDATA[" + a.replace(/\]\]>/g, "]] >") + "]]>"
+  return n && /^https?:/.test(n) ? a = '<a href="' + n + '">📷 Photo (Google Drive)</a><br/>' + a : n && (a = '<img src="' + n + '" width="380"/><br/>' + a), "<![CDATA[" + a.replace(/\]\]>/g, "]] >") + "]]>"
 }
 
 function csvText(e) {
@@ -3531,7 +3619,7 @@ function renderRef() {
     n = Object.keys(CDB).reduce(function(e, t) {
       return e + CDB[t].length
     }, 0);
-  $("#refbody").innerHTML = '<div class="card"><h2 style="margin-top:0">How to work in the field</h2><ol class="note" style="padding-left:18px;margin:0"><li>In Setup choose the sector, then the transformer. Choose the district first (Kirehe or Ngoma). Transformers with a customer list come first; their customers are already inside the app (' + n + " customers on " + t + ' transformers).</li><li>The GPS starts by itself: the bar at the top shows <b>SAT</b> (satellites) or <b>NET</b> (network, not usable) and the live accuracy.</li><li>For every point: choose what you record (Transformer, Pole, Customer), stand on it and tap <b>🛰 Capture position</b>. The app averages satellite fixes and stops at ±3 m (or 60 s, or <b>Use now</b>). The green line shows the village.</li><li>Record the <b>transformer</b> point first, with its photo.</li><li>Walk the line and record each <b>pole</b> with the number painted on it (P1, P2 …). The pole numbers named in the customer list are proposed. Pick “Fed from” (it proposes the last pole) so the span fills itself.</li><li>For a <b>customer</b>: pick the person from the list, stand at the meter, choose the supply pole, and Save. Name, meter, ID, UPI and phone come from the list; the cable length comes from GPS.</li><li>Open Send, fix what is shown in red, then create your send file and share it with the supervisor every evening.</li></ol></div><div class="card"><h2 style="margin-top:0">What fills in by itself</h2><ul class="note" style="padding-left:18px;margin:0"><li>X and Y in TM Rwanda (ITRF2005, CM 30°E, k0 0.9999, FE 500 000, FN 5 000 000).</li><li>District, Sector, Cell and Village of every point, from its GPS position.</li><li>Span length from one pole to the next, service cable length = pole to house + drop allowance.</li><li>Pole number and cable length from the customer list, kept beside the field values so the office can compare.</li><li>Date and time of collection.</li></ul></div><div class="card"><h2 style="margin-top:0">Pole numbers</h2><p class="note" style="margin:0">Pole numbers restart on every transformer, as on the network. P12 of Ex Trf Gisore and P12 of EX TRF KAREHE are two different poles: always choose the right transformer in Setup before recording.</p></div><div class="card"><h2 style="margin-top:0">Works offline</h2><p class="note" style="margin:0">Open the app once with network: after that it runs with no internet. Save the satellite map of your area before going out (map card, Offline map). Records stay on the phone until the send file is created and shared.</p></div><div class="card"><h2 style="margin-top:0">This phone</h2><p class="note" style="margin:0 0 12px">' + esc(APP_NAME) + " · build <b>" + BUILD + "</b><br>Surveyor <b>" + esc(agent.name || "not set") + "</b><br>Address " + esc(location.origin + location.pathname) + '<br><b style="color:' + (e ? "var(--earth)" : "var(--live)") + '">Secure page (GPS + saving): ' + (e ? "yes" : "NO - host on https") + '</b></p><button class="act" onclick="openGate()">Change surveyor</button></div><div class="card" style="background:linear-gradient(135deg,#143642,#1C7293);color:#fff;border:0"><div style="display:flex;gap:12px;align-items:center"><div style="width:46px;height:46px;border-radius:50%;background:#D98324;display:grid;place-items:center;font-weight:800;flex:0 0 auto">WK</div><div><b style="display:block;font-size:15px">Eng. Wilbert KIRARA</b><span style="font-size:12.5px;color:#cfe3ea">Expert Surveyor in Electrical Power Lines<br>Creator of Voltline, WK LV As-Built and WK Connect Survey</span></div></div><p style="font-size:11.5px;color:#cfe3ea;margin:10px 0 0">' + esc(PROJECT_TITLE) + " · © 2026 all rights reserved</p></div>"
+  $("#refbody").innerHTML = '<div class="card"><h2 style="margin-top:0">How to work in the field</h2><ol class="note" style="padding-left:18px;margin:0"><li>In Setup choose the sector, then the transformer. Choose the district first (Kirehe or Ngoma). Transformers with a customer list come first; their customers are already inside the app (' + n + " customers on " + t + ' transformers).</li><li>The GPS starts by itself: the bar at the top shows <b>SAT</b> (satellites) or <b>NET</b> (network, not usable) and the live accuracy.</li><li>For every point: choose what you record (Transformer, Pole, Customer), stand on it and tap <b>🛰 Capture position</b>. The app averages satellite fixes and stops at ±3 m (or 60 s, or <b>Use now</b>). The green line shows the village.</li><li>Record the <b>transformer</b> point first, with its photo.</li><li>Walk the line and record each <b>pole</b> with the number painted on it (P1, P2 …). The pole numbers named in the customer list are proposed. Pick “Fed from” (it proposes the last pole) so the span fills itself.</li><li>For a <b>customer</b>: pick the person from the list, stand at the meter, choose the supply pole, and Save. Name, meter, ID, UPI and phone come from the list; the cable length comes from GPS.</li><li>Open Send, fix what is shown in red, then create your send file and share it with the supervisor every evening.</li></ol></div><div class="card"><h2 style="margin-top:0">What fills in by itself</h2><ul class="note" style="padding-left:18px;margin:0"><li>X and Y in TM Rwanda (ITRF2005, CM 30°E, k0 0.9999, FE 500 000, FN 5 000 000).</li><li>District, Sector, Cell and Village of every point, from its GPS position.</li><li>Span length from one pole to the next, service cable length = pole to house + drop allowance.</li><li>Pole number and cable length from the customer list, kept beside the field values so the office can compare.</li><li>Date and time of collection.</li></ul></div><div class="card"><h2 style="margin-top:0">Pole numbers</h2><p class="note" style="margin:0">Pole numbers restart on every transformer, as on the network. P12 of Ex Trf Gisore and P12 of EX TRF KAREHE are two different poles: always choose the right transformer in Setup before recording.</p></div><div class="card"><h2 style="margin-top:0">Works offline</h2><p class="note" style="margin:0">Open the app once with network: after that it runs with no internet. Save the satellite map of your area before going out (map card, Offline map). Records stay on the phone until the send file is created and shared.</p></div><div class="card"><h2 style="margin-top:0">This phone</h2><p class="note" style="margin:0 0 12px">' + esc(APP_NAME) + " · build <b>" + BUILD + "</b><br>Surveyor <b>" + esc(agent.name || "not set") + "</b><br>Address " + esc(location.origin + location.pathname) + '<br><b style="color:' + (e ? "var(--earth)" : "var(--live)") + '">Secure page (GPS + saving): ' + (e ? "yes" : "NO - host on https") + '</b></p><button class="act" onclick="openGate()">Change surveyor</button></div><div class="card" style="background:linear-gradient(135deg,#143642,#1C7293);color:#fff;border:0"><div style="display:flex;gap:12px;align-items:center"><img src="author.png" alt="Eng. Wilbert KIRARA" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #7dd3fc;flex:0 0 auto"><div><b style="display:block;font-size:15px">Eng. Wilbert KIRARA</b><span style="font-size:12.5px;color:#cfe3ea">Expert Surveyor in Electrical Power Lines<br>Creator of Voltline, WK LV As-Built and WK Connect Survey</span></div></div><p style="font-size:11.5px;color:#cfe3ea;margin:10px 0 0">' + esc(PROJECT_TITLE) + " · © 2026 all rights reserved</p></div>"
 }
 $("#ex_kml").onclick = async function() {
   if (exportGuard()) try {
@@ -3623,7 +3711,7 @@ $("#ex_kml").onclick = async function() {
         })
       }
     };
-    dl(agentSlug() + "_" + (ctx.trf || "TRF") + "_" + stamp() + ".wklv.json", JSON.stringify(o), "application/json"), lastSend = (new Date).toLocaleString("en-GB"), lastSendN = Date.now(), persist(), renderSend(), badges(), toast("File created, share it with the supervisor")
+    dl(agentSlug() + "_" + String(dataLabel()).replace(/[^A-Za-z0-9_-]+/g, "_") + "_" + stamp() + ".wklv.json", JSON.stringify(o), "application/json"), lastSend = (new Date).toLocaleString("en-GB"), lastSendN = Date.now(), persist(), renderSend(), badges(), toast("File created, share it with the supervisor")
   } else toast("Nothing to send")
 }, $("#ex_clear").onclick = function() {
   confirm("Erase all your points? Create the send file first.") && confirm("Confirm a second time. This cannot be undone.") && (records = [], persist(), renderSend(), renderRecords(), badges(), toast("Data erased"))
@@ -3877,27 +3965,29 @@ async function syncNow(e) {
         var n = e.updatedAt || e.time;
         e.updatedAt || (e.updatedAt = n);
         var o = e.photo ? await photoGet(e.id) : null,
-          r = o ? await blobToB64(await stampPhoto(o, e)) : "";
-        await post({
-          action: "upsert",
-          sheet: SHEET_OF[e.type],
-          id: e.id,
-          type: e.type,
-          trf: recTrf(e) || custTrf(e),
-          district: e.props.District || ctx.district || "",
-          header: HEADERS[e.type].concat(["Latitude", "Longitude", "Edited by", "Updated (phone)"]),
-          row: rowFor(e.type, e).concat([e.lat.toFixed(8), e.lon.toFixed(8), e.editedBy || "", n]).map(function(e) {
-            return null == e ? "" : String(e)
+          r = o ? await blobToB64(await stampPhoto(o, e)) : "",
+          a = recTrf(e) || custTrf(e),
+          i = await post({
+            action: "upsert",
+            sheet: SHEET_OF[e.type],
+            id: e.id,
+            type: e.type,
+            trf: a,
+            sector: trfGroup(a, e.props.District),
+            district: trfDistrict(a) || e.props.District || "",
+            header: HEADERS[e.type].concat(["Latitude", "Longitude", "Edited by", "Updated (phone)"]),
+            row: rowFor(e.type, e).concat([e.lat.toFixed(8), e.lon.toFixed(8), e.editedBy || "", n]).map(function(e) {
+              return null == e ? "" : String(e)
+            }),
+            photo: r,
+            photoName: photoName(e)
           }),
-          photo: r,
-          photoName: photoName(e)
-        });
-        var a = records.filter(function(t) {
-          return t.id === e.id
-        })[0];
-        a && (a.updatedAt || a.time) === n && (a.syncedAt = n, persist()), t++, renderSync()
+          s = records.filter(function(t) {
+            return t.id === e.id
+          })[0];
+        s && i && i.photo && (s.drivePhoto = i.photo), s && (s.updatedAt || s.time) === n && (s.syncedAt = n, persist()), a && driveMark(a), t++, renderSync()
       }
-      lastSyncOk = (new Date).toISOString(), (e || t) && toast(t ? "Synced " + t + " point(s) to Google Drive" : "Everything already synced")
+      lastSyncOk = (new Date).toISOString(), (e || t) && toast(t ? "Synced " + t + " point(s) to Google Drive" : "Everything already synced"), await driveFilesDue(e)
     } catch (t) {
       syncErr = "AbortError" === t.name ? "timeout" : t.message || String(t), e && toast("Sync failed: " + syncErr)
     } finally {
@@ -3937,8 +4027,166 @@ async function saveSyncUrl() {
 addEventListener("online", function() {
   syncSoon(2e3)
 }), setInterval(function() {
-  navigator.onLine && syncUrl() && pendingCount() && !syncBusy && syncNow(!1)
-}, 12e4), document.addEventListener("visibilitychange", function() {
+  navigator.onLine && syncUrl() && !syncBusy && (pendingCount() || driveDueList(!1).length) && syncNow(!1)
+}, 12e4);
+var DRIVE_KEY = "voltline-drive",
+  DRIVE_EVERY = 12e5;
+
+function driveState() {
+  try {
+    return JSON.parse(localStorage.getItem(DRIVE_KEY) || "{}")
+  } catch (e) {
+    return {}
+  }
+}
+
+function driveSave(e) {
+  try {
+    localStorage.setItem(DRIVE_KEY, JSON.stringify(e))
+  } catch (e) {}
+}
+
+function driveMark(e) {
+  var t = driveState();
+  t[e] = t[e] || {}, t[e].dirty = Date.now(), driveSave(t)
+}
+
+function trfDistrict(e) {
+  var t = TRF_REF.filter(function(t) {
+    return t.n === e
+  })[0];
+  return t ? t.d : ""
+}
+
+function trfGroup(e, d) {
+  var t = trfDistrict(e) || d || ctx.district || "";
+  return t ? t + " District" : "Other"
+}
+
+function trfSector(e) {
+  var t = TRF_REF.filter(function(t) {
+    return t.n === e
+  })[0];
+  return t ? t.s : ""
+}
+
+function driveDueList(e) {
+  var t = driveState(),
+    n = Date.now();
+  return Object.keys(t).filter(function(o) {
+    var r = t[o];
+    return r.dirty && (!r.sent || r.dirty > r.sent) && (e || !r.sent || n - r.sent > DRIVE_EVERY)
+  })
+}
+
+function u8b64(e) {
+  var t, n = "";
+  for (t = 0; t < e.length; t += 32768) n += String.fromCharCode.apply(null, e.subarray(t, t + 32768));
+  return btoa(n)
+}
+
+function fileEntry(e, t, n) {
+  var o = t.data;
+  return "string" == typeof o ? {
+    folder: e,
+    name: t.name,
+    mime: n,
+    text: o
+  } : {
+    folder: e,
+    name: t.name,
+    mime: n,
+    b64: u8b64(o instanceof Uint8Array ? o : new Uint8Array(o))
+  }
+}
+async function driveFilesFor(e) {
+  var t, n = String(e).replace(/[^A-Za-z0-9_-]+/g, "_"),
+    o = records,
+    r = [];
+  records = o.filter(function(t) {
+    return inTrf(t, e)
+  });
+  try {
+    t = records.slice(), r.push(fileEntry("KMZ", {
+      name: n + "_AsBuilt.kmz",
+      data: zipBytes([{
+        name: "doc.kml",
+        data: buildKML(function(e) {
+          return e.drivePhoto || ""
+        })
+      }])
+    }, "application/vnd.google-earth.kmz")), shpFiles(n + "_", "").forEach(function(e) {
+      r.push(fileEntry("Shapefile", e, "application/octet-stream"))
+    }), csvFiles(n + "_").forEach(function(e) {
+      r.push(fileEntry("Information Data", e, "text/csv"))
+    });
+    var a = backupPack();
+    a.count = records.length, a.transformer = e, r.push(fileEntry("Backup", {
+      name: n + ".wklv.json",
+      data: JSON.stringify(a)
+    }, "application/json"))
+  } finally {
+    records = o
+  }
+  var i = t.filter(function(e) {
+    return "cust" === e.type
+  });
+  if (i.length) try {
+    var s = await buildXLSX(i);
+    s && r.push(fileEntry("Information Data", {
+      name: "Customers_" + n + ".xlsx",
+      data: new Uint8Array(s)
+    }, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+  } catch (e) {
+    console.warn("xlsx", e)
+  }
+  return post({
+    action: "files",
+    trf: e,
+    sector: trfGroup(e),
+    district: trfDistrict(e),
+    files: r
+  })
+}
+async function driveFilesDue(e) {
+  var t = driveDueList(e),
+    n = 0;
+  for (const i of t)
+    if (records.some(function(e) {
+        return inTrf(e, i)
+      })) {
+      var o = Date.now();
+      try {
+        var r = await driveFilesFor(i),
+          a = driveState();
+        a[i] = a[i] || {}, a[i].sent = o, r && r.folder && (a[i].url = r.folder), driveSave(a), n++
+      } catch (t) {
+        console.warn("drive files", i, t), e && toast("Drive files of " + i + " not sent: " + (t.message || t))
+      }
+    } return e && n && toast("Drive folders updated: " + n + " transformer" + (n > 1 ? "s" : "")), renderDriveInfo(), n
+}
+async function driveNow() {
+  if (syncUrl())
+    if (navigator.onLine) {
+      var e = driveState();
+      records.forEach(function(t) {
+        var n = trfOf(t);
+        n && (e[n] = e[n] || {}, (!e[n].dirty || e[n].sent && e[n].dirty <= e[n].sent) && (e[n].dirty = Date.now()))
+      }), driveSave(e), toast("Updating the Drive folders…"), await syncNow(!1), await driveFilesDue(!0)
+    } else toast("No network — the Drive folders will be updated automatically later");
+  else toast("Sync is not configured")
+}
+
+function renderDriveInfo() {
+  var e = $("#driveInfo");
+  if (e) {
+    var t = driveState(),
+      n = ctx.trf,
+      o = n && t[n];
+    e.innerHTML = n ? "<b>" + esc(n) + "</b> — " + (o && o.sent ? "files in Drive updated " + locDate(new Date(o.sent).toISOString()) + " " + locTime(new Date(o.sent).toISOString()) : "files not yet in Drive") + (o && o.url ? ' · <a href="' + esc(o.url) + '" target="_blank" rel="noopener">open the folder</a>' : "") : ""
+  }
+}
+document.addEventListener("visibilitychange", function() {
   "visible" === document.visibilityState && syncSoon(1e3)
 });
 var scanField = null,
@@ -4202,10 +4450,10 @@ if (addEventListener("beforeinstallprompt", function(e) {
   })
 }
 
-function updateSetup() {
-  var e = $("#setup"),
-    t = $("#setuplbl");
-  e && (ctx.trf ? e.removeAttribute("open") : e.setAttribute("open", ""), t && (t.textContent = ctx.trf ? "— " + ctx.trf + (ctx.sector ? " · " + ctx.sector : "") + (roster.length ? " · " + roster.length + " customers" : "") : "— choose the transformer"))
+function updateSetup(e) {
+  var t = $("#setup"),
+    n = $("#setuplbl");
+  t && (ctx.trf ? !0 === e && t.removeAttribute("open") : t.setAttribute("open", ""), n && (n.textContent = ctx.trf ? "— " + ctx.trf + (ctx.sector ? " · " + ctx.sector : "") + (roster.length ? " · " + roster.length + " customers" : "") : "— choose the transformer"))
 }
 
 function distinctVals(e) {
@@ -4245,11 +4493,45 @@ function rosterCount(e) {
 }
 
 function chooseTrf(e) {
-  ctx.trf = e;
-  var t = TRF_REF.filter(function(t) {
-    return t.n === e
-  })[0];
-  t && (ctx.sector = t.s, ctx.district = t.d || ctx.district), setRosterForTRF(), drafts.cust = {}, drafts.trf = {}, selectedCust = null, custQ = "", persist(), renderSetupSelects(), updateSetup(), renderRosterInfo(), badges(), renderForm(), refreshSat()
+  if (e !== ctx.trf) {
+    if (cap && (clearInterval(cap.timer), cap = null), editingId || captureDraft(), ctx.trf) {
+      var t = !editingId && photoBlob;
+      trfMem[ctx.trf] = {
+        drafts: JSON.parse(JSON.stringify(drafts)),
+        active: active,
+        lastVals: JSON.parse(JSON.stringify(lastVals)),
+        fix: editingId ? null : fix,
+        photo: t ? {
+          type: active,
+          time: photoTime
+        } : null
+      }, t && photoPut("draft:" + ctx.trf, photoBlob).catch(function() {})
+    }
+    photoData = null, photoBlob = null, photoTime = null, photoChanged = !1, "function" == typeof showPreview && showPreview(), editingId = null;
+    var n = trfMem[e];
+    drafts = n && n.drafts ? n.drafts : {
+      pole: {},
+      cust: {},
+      trf: {}
+    }, lastVals = n && n.lastVals ? n.lastVals : {
+      pole: {},
+      cust: {},
+      trf: {}
+    }, fix = n && n.fix ? n.fix : null, n && n.active && SCHEMA[n.active] && (active = n.active), ctx.trf = e;
+    var o = TRF_REF.filter(function(t) {
+      return t.n === e
+    })[0];
+    if (o && (ctx.sector = o.s, ctx.district = o.d || ctx.district), setRosterForTRF(), selectedCust = null, custQ = "", drafts.cust && delete drafts.cust.__walkin, "function" == typeof renderChips && $("#chips") && renderChips(), "function" == typeof showFix) try {
+      showFix()
+    } catch (e) {}
+    if (renderTrfSwitch(), persist(), renderSetupSelects(), updateSetup(!0), renderRosterInfo(), badges(), renderForm(), refreshSat(), n && n.photo && n.photo.type === active) {
+      var r = "draft:" + e,
+        a = n.photo.time;
+      n.photo = null, photoGet(r).then(function(t) {
+        !t || ctx.trf !== e || photoBlob || editingId || (photoBlob = t, photoTime = a, photoChanged = !0, photoData = URL.createObjectURL(t), showPreview()), photoDel(r)
+      })
+    }
+  }
 }
 
 function renderSetupSelects() {
@@ -4311,7 +4593,7 @@ idbOpen().then(function(e) {
   Object.keys(ctx).forEach(function(e) {
     var t = $("#c_" + e);
     t && (t.value = ctx[e] || "")
-  }), agent && agent.name && closeGate(), setRosterForTRF(), records.length || (active = "trf"), renderChips(), renderForm(), badges(), gpsReady(), saveBadge(), renderRosterInfo(), renderSetupSelects(), updateSetup();
+  }), agent && agent.name && closeGate(), setRosterForTRF(), records.length || (active = "trf"), renderChips(), renderForm(), badges(), gpsReady(), saveBadge(), renderRosterInfo(), renderSetupSelects(), updateSetup(!0);
   var e = $("#mapDiagram"),
     t = $("#mapSat");
   e && (e.onclick = showDiagram), t && (t.onclick = showSat);
