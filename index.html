@@ -39,15 +39,18 @@
   .brand small{display:block;font-weight:500;font-size:11px;color:#94a3b8;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brand small.by{color:#7dd3fc;letter-spacing:0}
   .hsp{margin-left:auto}
+  .brand{flex:1 1 auto}
+  .hacts{max-width:780px;margin:0 auto;padding:0 14px 8px;display:flex;align-items:center;gap:8px}
+  .hacts button{height:34px;display:inline-flex;align-items:center;justify-content:center}
+  .hacts .agent{flex:1 1 auto;min-width:0;max-width:none;display:block;line-height:20px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .upd .ul{margin-left:5px}
   .agent{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:99px;padding:6px 11px;font-size:12.5px;font-weight:600;max-width:30vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sync{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#e2e8f0;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;white-space:nowrap}
   .sync.ok{background:#064e3b;border-color:#065f46;color:#a7f3d0}.sync.pend{background:#78350f;border-color:#92400e;color:#fde68a}
   .qab{border-radius:99px;padding:6px 9px;font-size:12.5px;font-weight:800;white-space:nowrap;cursor:pointer;border:1px solid transparent}
   .qab.fix{background:#b91c1c;border-color:#ef4444;color:#fff}.qab.chk{background:#78350f;border-color:#92400e;color:#fde68a}
   .qab[hidden]{display:none}
-  @media (max-width:380px){.agent{max-width:19vw;padding:6px 8px}.qab,.sync,.upd{padding:6px 7px}}
   .upd{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#e2e8f0;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
-  @media (max-width:430px){.upd .ul{display:none}.upd{padding:6px 9px;font-size:14px}.upd.new .ul{display:inline}}
   .upd.new{background:#0369a1;border-color:#0ea5e9;color:#fff;animation:updpulse 1.6s ease-in-out 3}
   @keyframes updpulse{50%{box-shadow:0 0 0 4px rgba(14,165,233,.35)}}
   @media (prefers-reduced-motion:reduce){.upd.new{animation:none}}
@@ -265,7 +268,8 @@
   <div class="hrow">
     <img class="logo" src="logo-mark.png" alt="Voltline">
     <div class="brand">Voltline<small id="zonelbl">KIREHE &amp; NGOMA · LV NETWORK AS-BUILT</small><small class="by"><img class="au" src="author.png" alt="">Eng. Wilbert KIRARA</small></div>
-    <span class="hsp"></span>
+  </div>
+  <div class="hacts">
     <button class="qab" id="qaBadge" onclick="openQA()" hidden>⚠ 0</button>
     <button class="upd" id="updBtn" onclick="appUpdate()" title="Check for a new version of Voltline" aria-label="Update Voltline">⟳<span class="ul"> Update</span></button>
     <button class="sync off" id="syncChip" onclick="syncNow(true)">☁ off</button>

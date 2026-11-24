@@ -471,7 +471,7 @@ var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-25-v16",
+  BUILD = "2026-11-25-v17",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -964,7 +964,7 @@ function qaBadge() {
       fix: 0,
       chk: 0
     };
-    t.fix || t.chk ? (e.hidden = !1, e.className = "qab " + (t.fix ? "fix" : "chk"), e.textContent = "⚠ " + (t.fix || t.chk), e.title = (t.fix ? t.fix + " to fix" : "") + (t.fix && t.chk ? ", " : "") + (t.chk ? t.chk + " to check" : "") + " — tap to see the list") : e.hidden = !0
+    t.fix || t.chk ? (e.hidden = !1, e.className = "qab " + (t.fix ? "fix" : "chk"), e.textContent = "⚠ " + (t.fix ? t.fix + " to fix" : t.chk + " to check"), e.title = (t.fix ? t.fix + " to fix" : "") + (t.fix && t.chk ? ", " : "") + (t.chk ? t.chk + " to check" : "") + " — tap to see the list") : e.hidden = !0
   } catch (e) {}
 }
 
