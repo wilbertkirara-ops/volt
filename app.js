@@ -471,7 +471,7 @@ var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-24-v10",
+  BUILD = "2026-11-24-v11",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -3125,10 +3125,7 @@ function qaExtra(n) {
     var r = String(e.props.Phone_number || "").replace(/[\s\-+.]/g, "");
     r && !/^(0|250)7[2389]\d{7}$/.test(r) && n("badtel", QA_CHK, "Phone number is not a Rwandan mobile (07X XXX XXXX)", e, t + " · " + e.props.Phone_number);
     var a = parseFloat(e.props["Horizontal distance of cable from pole to house"]);
-    a > 50 && n("longsvc", QA_CHK, "Service cable longer than 50 m (wrong supply pole or wrong position?)", e, t + " · " + a.toFixed(0) + " m from " + (e.props.POLES || "pole"));
-    var i = parseFloat(e.props.Length_in_list),
-      s = parseFloat(e.props["REAL LENGTH OF SERVICE CABLE"]);
-    i > 0 && s > 0 && Math.abs(i - s) > 20 && n("lendiff", QA_CHK, "Cable length differs by more than 20 m from the customer list", e, t + " · list " + i + " m → field " + s.toFixed(0) + " m")
+    a > 50 && n("longsvc", QA_CHK, "Service cable longer than 50 m (wrong supply pole or wrong position?)", e, t + " · " + a.toFixed(0) + " m from " + (e.props.POLES || "pole"))
   }), spans().forEach(function(e) {
     var t = SPAN_MAX[e.Conductor] || 60;
     e.Length_m > t && n("longspan", QA_CHK, "LV span longer than allowed for its conductor", e.pole, e.Span_ID + " · " + e.Length_m.toFixed(0) + " m > " + t + " m" + (e.Conductor ? " (" + e.Conductor + ")" : ""))

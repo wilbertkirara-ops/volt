@@ -43,8 +43,7 @@ Name | Code | Role (agent / supervisor) | Active (YES / NO) | Last seen | Name o
 
 ## Checks before export (since v9)
 Excel and ZIP exports first list the points to fix or check: missing photo/assembly, duplicate pole, house,
-meter or ID numbers, ID not 16 digits, phone not 07X XXX XXXX, service cable over 50 m, cable length more
-than 20 m from the customer list, LV span over the limit of its conductor, GPS worse than ±10 m.
+meter or ID numbers, ID not 16 digits, phone not 07X XXX XXXX, service cable over 50 m, LV span over the limit of its conductor, GPS worse than ±10 m.
 
 ## Supervisor tracker (since v9)
 Tab "Progress vs customer list": customers surveyed / expected per transformer (matched by meter, ID, then
