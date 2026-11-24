@@ -1,11 +1,12 @@
 // Voltline (Kirehe & Ngoma) — offline app shell. Bump CACHE on every release.
-var CACHE='voltline-v27';
+var CACHE='voltline-v28';
 var ASSETS=['./','./index.html','./app.js','./tracker.html','./manifest.webmanifest',
   './voltline-transformers.js','./voltline-villages.js','./voltline-customers.js',
   './exceljs.min.js','./jszip.min.js','./zxing.min.js','./voltline-template.xlsx',
   './leaflet/leaflet.js','./leaflet/leaflet.css','./leaflet/images/layers.png','./leaflet/images/layers-2x.png',
   './leaflet/images/marker-icon.png','./leaflet/images/marker-icon-2x.png','./leaflet/images/marker-shadow.png',
-  './icon-192.png','./icon-512.png','./icon-maskable-512.png','./apple-touch-icon.png','./favicon-32.png','./logo-mark.png','./author.png'];
+  './icon-192.png','./icon-512.png','./icon-maskable-512.png','./apple-touch-icon.png','./favicon-32.png','./logo-mark.png','./author.png','./amabwiriza.html',
+  './guide/kwinjira.jpg','./guide/transfo.jpg','./guide/ipoto.jpg','./guide/abakiriya.jpg','./guide/amakosa.jpg','./guide/sync.jpg'];
 // files that change with each release: taken from the network first (fresh), the cache is only the offline fallback
 var FRESH=/(\/|\.html|app\.js|voltline-[a-z]+\.js|manifest\.webmanifest)$/;
 self.addEventListener('install',function(e){

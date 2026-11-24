@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="rw">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voltline — Amabwiriza</title>
+<meta name="theme-color" content="#0f172a">
+<style>
+  :root{--ink:#0f172a;--paper:#f1f5f9;--card:#fff;--text:#1e293b;--muted:#64748b;--blue:#0369a1;--red:#b91c1c;--amber:#92400e;--green:#047857;--rule:#e2e8f0}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--text);font:17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{background:var(--ink);color:#fff;padding:18px 16px 16px}
+  header .in{max-width:640px;margin:0 auto;display:flex;gap:12px;align-items:center}
+  header img.logo{width:44px;height:44px;border-radius:10px}
+  header h1{margin:0;font-size:22px;line-height:1.15}
+  header p{margin:2px 0 0;color:#94a3b8;font-size:14px}
+  header .by{display:flex;align-items:center;gap:6px;color:#7dd3fc;font-size:13px;margin-top:4px}
+  header .by img{width:20px;height:20px;border-radius:50%;object-fit:cover;border:1px solid #7dd3fc}
+  main{max-width:640px;margin:0 auto;padding:12px 16px 48px}
+  nav.toc{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;margin:8px 0 18px}
+  nav.toc b{display:block;margin-bottom:6px}
+  nav.toc ol{margin:0;padding-left:22px;columns:2;column-gap:20px;font-size:15px}
+  nav.toc a{color:var(--blue);text-decoration:none}
+  section{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:16px;margin-bottom:14px}
+  h2{margin:0 0 10px;font-size:19px;display:flex;gap:10px;align-items:baseline}
+  h2 .n{flex:0 0 auto;background:var(--ink);color:#fff;border-radius:99px;width:28px;height:28px;display:inline-grid;place-items:center;font-size:15px}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:4px 0}
+  .btn{display:inline-block;background:var(--blue);color:#fff;border-radius:7px;padding:1px 8px;font-weight:700;font-size:15px;white-space:nowrap}
+  .btn.red{background:var(--red)} .btn.amber{background:var(--amber)} .btn.green{background:var(--green)} .btn.grey{background:#334155}
+  .warn{background:#fef2f2;border-left:4px solid var(--red);padding:10px 12px;border-radius:6px;margin:10px 0}
+  .tip{background:#f0f9ff;border-left:4px solid var(--blue);padding:10px 12px;border-radius:6px;margin:10px 0}
+  figure{margin:12px auto 4px;max-width:300px}
+  figure img{width:100%;border-radius:14px;border:1px solid var(--rule);display:block}
+  figcaption{font-size:13px;color:var(--muted);text-align:center;margin-top:4px}
+  footer{max-width:640px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px;text-align:center}
+  a:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+  @media (max-width:420px){nav.toc ol{columns:1}}
+</style>
+</head>
+<body>
+<header>
+  <div class="in">
+    <img class="logo" src="icon-192.png" alt="">
+    <div>
+      <h1>Voltline — Uko ikoreshwa</h1>
+      <p>Amabwiriza y'umukozi wo ku murima · RUEAP Lot 2, Kirehe &amp; Ngoma</p>
+      <div class="by"><img src="author.png" alt="">Eng. Wilbert KIRARA</div>
+    </div>
+  </div>
+</header>
+<main>
+  <nav class="toc" aria-label="Ibirimo">
+    <b>Ibirimo</b>
+    <ol>
+      <li><a href="#gitondo">Buri gitondo</a></li>
+      <li><a href="#kwinjira">Kwinjira</a></li>
+      <li><a href="#transfo">Guhitamo transfo</a></li>
+      <li><a href="#gps">GPS</a></li>
+      <li><a href="#ipoto">Amapoto</a></li>
+      <li><a href="#abakiriya">Abakiriya</a></li>
+      <li><a href="#amakosa">Amakosa ⚠</a></li>
+      <li><a href="#sync">Kohereza</a></li>
+      <li><a href="#kwirinda">Ibyo kwirinda</a></li>
+      <li><a href="#ibibazo">Iyo hari ikibazo</a></li>
+    </ol>
+  </nav>
+
+  <section id="gitondo">
+    <h2><span class="n">1</span>Buri gitondo, mbere yo gutangira</h2>
+    <ul>
+      <li>Fungura Voltline ufite internet, ukande <span class="btn grey">⟳ Update</span> hejuru. Ubona verisiyo nshya ako kanya.</li>
+      <li>Reba ko igicu kiri mu cyatsi <span class="btn green">☁ ✓</span>: bivuze ko ibyo wakoze ejo byose byageze kuri Drive.</li>
+      <li>Telefoni ifite umuriro uhagije, na <b>Location (GPS)</b> ifunguye.</li>
+    </ul>
+  </section>
+
+  <section id="kwinjira">
+    <h2><span class="n">2</span>Kwinjira (rimwe gusa)</h2>
+    <ul>
+      <li><b>Full name</b>: andika amazina yawe yose.</li>
+      <li><b>Sync code</b>: andika code wahawe na supervisor. Ni iyawe wenyine: ntuyihe undi muntu.</li>
+      <li>Kanda <span class="btn">Continue</span>.</li>
+    </ul>
+    <figure><img src="guide/kwinjira.jpg" alt="Ecran yo kwinjira: amazina na sync code" loading="lazy"><figcaption>Amazina yose + sync code</figcaption></figure>
+  </section>
+
+  <section id="transfo">
+    <h2><span class="n">3</span>Guhitamo transformateur</h2>
+    <ul>
+      <li>Muri <b>⚙ Transformer zone</b>: hitamo <b>District</b>, hanyuma <b>Sector</b>, hanyuma <b>Transformer</b>.</li>
+      <li>Urutonde rw'abakiriya b'iyo transfo ruhita ruza (urugero: <i>Kidakama · 377 customers</i>).</li>
+      <li>Transfo wahisemo ikoreshwa hose kugeza uyihinduye. Iyo uhinduye transfo, ibyo wari ugezeho ntibisibangana.</li>
+    </ul>
+    <figure><img src="guide/transfo.jpg" alt="Guhitamo district, sector na transformer" loading="lazy"><figcaption>District → Sector → Transformer</figcaption></figure>
+  </section>
+
+  <section id="gps">
+    <h2><span class="n">4</span>GPS: aho ufata position</h2>
+    <ul>
+      <li>Hejuru hagaragara uko GPS imeze. <b>Icyatsi “Satellite fix · good”</b> na <b>±1 kugeza ±5 m</b> = byiza.</li>
+      <li><b>“NET”</b> cyangwa umutuku = ntibikoreshwa. Tegereza, cyangwa ujye ahabona ikirere neza (kure y'amazu n'ibiti).</li>
+      <li>Hagarara <b>ku ipoto</b> (cyangwa <b>kuri konteri y'umukiriya</b>), ufate telefoni idanyeganyega, ukande <span class="btn">🛰 Capture position</span>, utegereze ko irangiza.</li>
+    </ul>
+    <div class="tip">Ntugashyire ipoto cyangwa umukiriya ku ikarita n'intoki (<b>Move points</b>) keretse ari ngombwa. Ahenshi amakosa akomeye ava aho.</div>
+  </section>
+
+  <section id="ipoto">
+    <h2><span class="n">5</span>Transformateur n'amapoto</h2>
+    <p><b>Transformateur</b> (rimwe kuri buri transfo): kanda <b>Transformer</b>, fata position iruhande rwayo, fata ifoto (itegetswe), kanda <span class="btn">Save transformer</span>.</p>
+    <p><b>Ipoto</b>: kanda <b>Pole</b>, hanyuma:</p>
+    <ul>
+      <li><b>Pole number</b>: P1, P2, P3… (app igusaba nimero ikurikira).</li>
+      <li><b>From pole</b>: ipoto iyibanziriza. Ku ipoto ya mbere, ni transfo.</li>
+      <li><b>Conductor</b> irategetswe: câble igera kuri iyo poto (urugero 3x50+54.6mm2).</li>
+      <li><b>Assembly</b>, hanyuma <b>ifoto</b> (irategetswe).</li>
+      <li>Hagarara ku ipoto, kanda <span class="btn">🛰 Capture position</span>, hanyuma <span class="btn">Save pole</span>.</li>
+    </ul>
+    <figure><img src="guide/ipoto.jpg" alt="Guhitamo Pole no gufata position" loading="lazy"><figcaption>Transformer · Pole · Customer, hanyuma Capture position</figcaption></figure>
+  </section>
+
+  <section id="abakiriya">
+    <h2><span class="n">6</span>Abakiriya</h2>
+    <ul>
+      <li>Kanda <b>Customer</b>. Shakisha umukiriya mu rutonde: izina, n° y'inzu, konteri, ID cyangwa telefoni.</li>
+      <li><b>✓ imbere y'izina</b> = uwo mukiriya yamaze kwandikwa. <b>Ntukamwandike kabiri.</b></li>
+      <li><b>Konteri imwe = umukiriya umwe.</b> Niba konteri yamaze kwandikwa, app irabyanga ikakwereka aho yanditse. Umuntu umwe ashobora kugira konteri nyinshi.</li>
+      <li>Umukiriya utari ku rutonde: kanda <span class="btn grey">+ New customer not on the list</span>.</li>
+      <li><b>Supply pole</b>: ipoto imugaburira (iyo câble ye iturukaho).</li>
+      <li>Hagarara <b>kuri konteri y'umukiriya</b> (si ku ipoto!), kanda <span class="btn">🛰 Capture position</span>. Uburebure bwa câble bwibara bwonyine.</li>
+      <li><b>Service cable</b> irategetswe (2x6 mm2 Cu, 2x4 mm2 Cu…).</li>
+      <li>Nta konteri ihari? App irakubaza kubyemeza, ikandika “No meter”.</li>
+      <li>Kanda <span class="btn green">Save customer</span>.</li>
+    </ul>
+    <div class="tip">Iyo câble irengeje <b>50 m</b>, app ikwereka ipoto iri hafi y'umukiriya (urugero “P2 iri kuri 10 m”). Kanda <b>OK</b> niba ari yo imugaburira koko.</div>
+    <figure><img src="guide/abakiriya.jpg" alt="Urutonde rw'abakiriya" loading="lazy"><figcaption>Shakisha mu rutonde · ✓ = yamaze kwandikwa</figcaption></figure>
+  </section>
+
+  <section id="amakosa">
+    <h2><span class="n">7</span>Amakosa: akamenyetso ⚠ hejuru</h2>
+    <ul>
+      <li><span class="btn red">⚠ 3 to fix</span> = amakosa 3 <b>agomba gukosorwa</b>.</li>
+      <li><span class="btn amber">⚠ 2 to check</span> = ibintu 2 byo <b>kugenzura</b>.</li>
+      <li>Kanda kuri ⚠ : urutonde rw'amakosa rurafunguka. Kanda ku izina: ipoto cyangwa umukiriya arafunguka. Kosora, ukande <span class="btn">Update point</span>.</li>
+      <li>Mbere yo gutaha, ⚠ igomba kuba yavuyeho cyangwa iri hasi cyane.</li>
+    </ul>
+    <figure><img src="guide/amakosa.jpg" alt="Urutonde rw'amakosa" loading="lazy"><figcaption>Kanda ku ikosa kugira ngo urikosore</figcaption></figure>
+  </section>
+
+  <section id="sync">
+    <h2><span class="n">8</span>Kohereza kuri Google Drive</h2>
+    <ul>
+      <li>Iyo ufite internet, ibyo wanditse n'amafoto byoherezwa <b>byonyine</b>.</li>
+      <li><span class="btn green">☁ ✓</span> = byose byagezeyo. <span class="btn amber">☁ 5</span> = 5 biracyategereje internet. <span class="btn red">☁ !</span> = hari ikibazo: jya muri <b>Export</b> usome ubutumwa.</li>
+      <li>Ushobora gukanda <span class="btn">⟳ Sync now</span> kugira ngo byoherezwe ako kanya.</li>
+      <li><b>Buri mugoroba</b>: Export → <b>Send file for the supervisor</b>, uyohereze kuri WhatsApp.</li>
+    </ul>
+    <figure><img src="guide/sync.jpg" alt="Sync na sync code" loading="lazy"><figcaption>“All points synced ✓” = byose byagezeyo</figcaption></figure>
+  </section>
+
+  <section id="kwirinda">
+    <h2><span class="n">9</span>Amakosa akunze kugaragara: yirinde</h2>
+    <ul>
+      <li>Kwandika <b>umukiriya umwe kabiri</b>, ku mapoto abiri atandukanye.</li>
+      <li>Guhuza umukiriya <b>n'ipoto ya kure</b>, kandi hari indi iri hafi ye.</li>
+      <li>Gufata position y'umukiriya <b>uhagaze ku ipoto</b> aho guhagarara kuri konteri ye.</li>
+      <li>Gushyira ipoto ku ikarita <b>n'intoki</b>, kure y'aho iri koko.</li>
+      <li>Kwibagirwa <b>conductor</b> ku ipoto, cyangwa <b>service cable</b> ku mukiriya.</li>
+    </ul>
+  </section>
+
+  <section id="ibibazo">
+    <h2><span class="n">10</span>Iyo hari ikibazo</h2>
+    <ul>
+      <li><b>App ntiyivugurura</b>: funga Voltline burundu (kanda ||| hanyuma uyikureho), uyifungure ufite internet. Bitakunze, fungura iyi link <b>muri browser washyiriyemo app</b> (Chrome cyangwa Samsung Internet): <a href="repair.html">wilbertkirara-ops.github.io/volt/repair.html</a>. Amakuru yawe ntasibangana.</li>
+      <li><b>“sync code not valid”</b>: reba ko wanditse code neza, cyangwa ubaze supervisor.</li>
+    </ul>
+    <div class="warn"><b>Ntuzigere usiba app</b> (uninstall) cyangwa ngo ukande <b>“Clear data”</b>: ibyo utarohereza byahita bisibangana burundu.</div>
+    <p>Ikindi kibazo cyose: hamagara supervisor.</p>
+  </section>
+</main>
+<footer>Voltline · RUEAP Lot 2, Kirehe &amp; Ngoma · © 2026 Eng. Wilbert KIRARA</footer>
+</body>
+</html>
