@@ -471,7 +471,7 @@ var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-24-v11",
+  BUILD = "2026-11-24-v12",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -4525,12 +4525,45 @@ if (addEventListener("beforeinstallprompt", function(e) {
   navigator.serviceWorker.register("sw.js", {
     updateViaCache: "none"
   }).then(function(e) {
+    swReg = e, e.addEventListener("updatefound", function() {
+      navigator.serviceWorker.controller && updMark(!0)
+    });
     try {
       e.update()
     } catch (e) {}
   }).catch(function() {}), navigator.serviceWorker.addEventListener("controllerchange", function() {
-    !hadCtl || reloaded || cap || hasUnsaved() || (reloaded = !0, location.reload())
-  })
+    (updForce || hadCtl) && !reloaded && (updForce || !cap && !hasUnsaved()) && (reloaded = !0, location.reload())
+  }), setInterval(function() {
+    navigator.onLine && swReg && swReg.update().catch(function() {})
+  }, 18e5)
+}
+var swReg = null,
+  updForce = !1;
+
+function updMark(e) {
+  var t = $("#updBtn");
+  t && (t.classList.toggle("new", !!e), t.innerHTML = e ? '⟳<span class="ul"> New</span>' : '⟳<span class="ul"> Update</span>')
+}
+async function appUpdate() {
+  if (!navigator.onLine) return toast("No internet. Connect to the network, then tap Update.");
+  if (cap || "function" == typeof hasUnsaved && hasUnsaved()) return toast("Save or cancel the point you are editing first, then tap Update.");
+  if (!("serviceWorker" in navigator) || !swReg) return toast("Updating…"), void setTimeout(function() {
+    location.reload()
+  }, 600);
+  var e = $("#updBtn");
+  e && (e.disabled = !0, e.innerHTML = '⟳<span class="ul"> …</span>');
+  try {
+    await swReg.update()
+  } catch (e) {}
+  var t = swReg.installing || swReg.waiting;
+  if (!t) return e && (e.disabled = !1), updMark(!1), void toast("Voltline is up to date ✓ (build " + BUILD + ")");
+  updForce = !0, toast("New version found, installing… the app restarts by itself. Your points are kept."), e && (e.innerHTML = '⟳<span class="ul"> …</span>');
+  try {
+    t.postMessage && t.postMessage("skipWaiting")
+  } catch (e) {}
+  setTimeout(function() {
+    location.reload()
+  }, 2e4)
 }
 
 function updateSetup(e) {

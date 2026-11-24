@@ -1,5 +1,5 @@
 // Voltline (Kirehe & Ngoma) — offline app shell. Bump CACHE on every release.
-var CACHE='voltline-v21';
+var CACHE='voltline-v22';
 var ASSETS=['./','./index.html','./app.js','./tracker.html','./manifest.webmanifest',
   './voltline-transformers.js','./voltline-villages.js','./voltline-customers.js',
   './exceljs.min.js','./jszip.min.js','./zxing.min.js','./voltline-template.xlsx',
@@ -14,6 +14,7 @@ self.addEventListener('activate',function(e){
     return Promise.all(ks.filter(function(k){return (k.indexOf('voltline')===0||k.indexOf('lvwk')===0)&&k!==CACHE;}).map(function(k){return caches.delete(k);}));
   }).then(function(){return self.clients.claim();}));
 });
+self.addEventListener('message',function(e){ if(e.data==='skipWaiting') self.skipWaiting(); });
 self.addEventListener('fetch',function(e){
   if(e.request.method!=='GET') return;
   // Only our own files. Satellite tiles go to the network (the app keeps its own offline tile store).

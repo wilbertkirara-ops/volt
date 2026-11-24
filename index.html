@@ -42,6 +42,11 @@
   .agent{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:99px;padding:6px 11px;font-size:12.5px;font-weight:600;max-width:30vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sync{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#e2e8f0;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;white-space:nowrap}
   .sync.ok{background:#064e3b;border-color:#065f46;color:#a7f3d0}.sync.pend{background:#78350f;border-color:#92400e;color:#fde68a}
+  .upd{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#e2e8f0;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
+  @media (max-width:390px){.upd .ul{display:none}.upd{padding:6px 9px;font-size:14px}.upd.new .ul{display:inline}}
+  .upd.new{background:#0369a1;border-color:#0ea5e9;color:#fff;animation:updpulse 1.6s ease-in-out 3}
+  @keyframes updpulse{50%{box-shadow:0 0 0 4px rgba(14,165,233,.35)}}
+  @media (prefers-reduced-motion:reduce){.upd.new{animation:none}}
   .sync.err{background:#7f1d1d;border-color:#991b1b;color:#fecaca}.sync.off{opacity:.7}
   .gpsbar{max-width:780px;margin:0 auto;padding:0 14px 6px}
   .gpschip{display:flex;align-items:center;gap:10px;border-radius:12px;padding:8px 12px;background:#1e293b;border:1px solid #334155}
@@ -257,6 +262,7 @@
     <img class="logo" src="logo-mark.png" alt="Voltline">
     <div class="brand">Voltline<small id="zonelbl">KIREHE &amp; NGOMA · LV NETWORK AS-BUILT</small><small class="by"><img class="au" src="author.png" alt="">Eng. Wilbert KIRARA</small></div>
     <span class="hsp"></span>
+    <button class="upd" id="updBtn" onclick="appUpdate()" title="Check for a new version of Voltline" aria-label="Update Voltline">⟳<span class="ul"> Update</span></button>
     <button class="sync off" id="syncChip" onclick="syncNow(true)">☁ off</button>
     <button class="agent" id="agentpill">👤 —</button>
   </div>
