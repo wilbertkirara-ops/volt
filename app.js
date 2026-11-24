@@ -471,7 +471,7 @@ var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-24-v13",
+  BUILD = "2026-11-24-v14",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -4007,7 +4007,8 @@ async function post(e) {
         body: JSON.stringify(Object.assign({
           token: SYNC_TOKEN,
           agent: agent && agent.name || "",
-          code: syncCode()
+          code: syncCode(),
+          build: BUILD
         }, e)),
         signal: t.signal,
         redirect: "follow"

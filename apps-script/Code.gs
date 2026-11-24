@@ -19,13 +19,13 @@
  * TOKEN must equal SYNC_TOKEN in app.js.
  *
  * ACCESS (version 3): every phone also sends its personal sync code. The codes are kept in
- * the "Agents" tab of the Sheet (Name | Code | Role | Active | Last seen | Name on phone).
+ * the "Agents" tab of the Sheet (Name | Code | Role | Active | Last seen | Name on phone | App build).
  * Role "supervisor" may also run migrate and pull (live data for the tracker).
  * Set Active to NO to cut a phone off at once. Codes are never written in this file.
  */
 const TOKEN = 'voltline-lot2-p8zblULZSwk3lqdCHRrmj764';
 const AGENTS_TAB = 'Agents';
-const AGENTS_HEAD = ['Name', 'Code', 'Role', 'Active', 'Last seen', 'Name on phone'];
+const AGENTS_HEAD = ['Name', 'Code', 'Role', 'Active', 'Last seen', 'Name on phone', 'App build'];
 // until this date a phone without a code is still accepted (time to hand out the codes); a wrong code is always refused
 const GRACE_UNTIL = new Date('2026-11-26T23:59:59+02:00');
 const SHEET_ID = '1NaD-U-PxDfDl1sW9dgrbXWO7JdcLPYuX6oXeGzrSLJk'; // Google Sheet "Voltline - Lot 2 LV As-Built (Kirehe & Ngoma) - Sync"
@@ -94,7 +94,7 @@ function auth_(d) {
   for (let i = 0; i < V.length; i++) {
     if (normCode_(V[i][1]) !== code) continue;
     if (/^(no|non|0|false)$/i.test(String(V[i][3]).trim())) return { ok: false, error: 'sync code disabled: contact the supervisor' };
-    try { sh.getRange(i + 2, 5, 1, 2).setValues([[new Date(), d.agent || '']]); } catch (e) {}
+    try { sh.getRange(i + 2, 5, 1, 3).setValues([[new Date(), d.agent || '', d.build || 'older than v14']]); } catch (e) {}
     return { ok: true, name: String(V[i][0]), role: /super/i.test(String(V[i][2])) ? 'supervisor' : 'agent' };
   }
   return { ok: false, error: 'sync code not valid: check it with the supervisor' };

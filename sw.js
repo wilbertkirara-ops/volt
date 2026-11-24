@@ -1,5 +1,5 @@
 // Voltline (Kirehe & Ngoma) — offline app shell. Bump CACHE on every release.
-var CACHE='voltline-v23';
+var CACHE='voltline-v24';
 var ASSETS=['./','./index.html','./app.js','./tracker.html','./manifest.webmanifest',
   './voltline-transformers.js','./voltline-villages.js','./voltline-customers.js',
   './exceljs.min.js','./jszip.min.js','./zxing.min.js','./voltline-template.xlsx',
@@ -17,7 +17,13 @@ self.addEventListener('install',function(e){
 self.addEventListener('activate',function(e){
   e.waitUntil(caches.keys().then(function(ks){
     return Promise.all(ks.filter(function(k){return (k.indexOf('voltline')===0||k.indexOf('lvwk')===0)&&k!==CACHE;}).map(function(k){return caches.delete(k);}));
-  }).then(function(){return self.clients.claim();}));
+  }).then(function(){return self.clients.claim();}).then(function(){
+    // an app window left in the background on an old version is reloaded on the new one
+    // (the visible window updates itself, so nothing being typed is lost)
+    return self.clients.matchAll({type:'window'}).then(function(cs){
+      cs.forEach(function(c){ if(c.visibilityState==='hidden'&&c.navigate) c.navigate(c.url).catch(function(){}); });
+    });
+  }));
 });
 self.addEventListener('message',function(e){ if(e.data==='skipWaiting') self.skipWaiting(); });
 function fromCache(req){ return caches.match(req,{ignoreSearch:true}).then(function(r){ return r||caches.match('./index.html'); }); }
