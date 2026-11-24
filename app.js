@@ -471,7 +471,7 @@ var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-24-v15",
+  BUILD = "2026-11-25-v16",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -953,7 +953,30 @@ function badges() {
     var n = unexportedCount();
     t.textContent = n, t.style.display = n > 0 ? "" : "none", t.style.background = n > 0 ? "var(--live)" : ""
   }
-  $("#chips") && $("#chips").children.length && renderChips(), $("#zonelbl").textContent = [ctx.district, ctx.trf, ctx.village].filter(Boolean).join(" · ") || "Kirehe & Ngoma · choose a transformer", renderTrfSwitch()
+  $("#chips") && $("#chips").children.length && renderChips(), $("#zonelbl").textContent = [ctx.district, ctx.trf, ctx.village].filter(Boolean).join(" · ") || "Kirehe & Ngoma · choose a transformer", renderTrfSwitch(), qaBadge()
+}
+
+/* errors always visible in the header: red = to fix, amber = only to check */
+function qaBadge() {
+  var e = $("#qaBadge");
+  if (e) try {
+    var t = records.length ? qaCheck() : {
+      fix: 0,
+      chk: 0
+    };
+    t.fix || t.chk ? (e.hidden = !1, e.className = "qab " + (t.fix ? "fix" : "chk"), e.textContent = "⚠ " + (t.fix || t.chk), e.title = (t.fix ? t.fix + " to fix" : "") + (t.fix && t.chk ? ", " : "") + (t.chk ? t.chk + " to check" : "") + " — tap to see the list") : e.hidden = !0
+  } catch (e) {}
+}
+
+function openQA() {
+  var e = document.querySelector('nav button[data-tab="send"]');
+  e && e.click(), setTimeout(function() {
+    var e = $("#qacard");
+    e && e.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    })
+  }, 150)
 }
 $("#g_ok").onclick = function() {
   var e = $("#g_name").value.trim().replace(/\s+/g, " ");
@@ -2469,7 +2492,10 @@ function renderPicker() {
         var t = s[+e.dataset.i];
         t.trf && t.trf !== ctx.trf && (chooseTrf(t.trf), toast("Transformer set: " + t.trf), t = roster.filter(function(e) {
           return e.meter && e.meter === t.meter || e.id === t.id && e.house === t.house
-        })[0] || t), selectCustomer(t)
+        })[0] || t);
+        var w = meterOwner(t.meter, null);
+        if (w) return void(confirm("Meter " + t.meter + " is already recorded: customer " + custLabel(w) + " on pole " + (w.props.POLES || "?") + ".\n\nA meter can belong to one customer only.\nOK = open that point to correct it\nCancel = choose another customer") && editRecord(w.id));
+        selectCustomer(t)
       }
     })
   }
@@ -2493,7 +2519,7 @@ function renderForm(e) {
   var o = $("#unlayer");
   o && (o.textContent = "· " + UN_LAYER[active]), e || (photoData = null, photoTime = null, photoBlob = null, photoChanged = !1);
   var r = [];
-  "cust" === active && (r = ["District", "Sector", "Cell", "Village", "Distance source", "TYPE OF CUSTOMMER", "Meter Type", "READYBOARD", "Pole_in_list", "Length_in_list"], selectedCust && (r = r.concat(["HSE No.", "FIRST NAME", "Second Name", "Category", "Phase", "Meter_number", "ID", "UPI", "Phone_number"])));
+  "cust" === active && (r = ["District", "Sector", "Cell", "Village", "Distance source", "TYPE OF CUSTOMMER", "Meter Type", "READYBOARD", "Pole_in_list", "Length_in_list"], selectedCust && (r = r.concat(["HSE No.", "FIRST NAME", "Second Name", "Category", "Phase", "ID", "UPI", "Phone_number"].concat(selectedCust.meter ? ["Meter_number"] : []))));
   var a = t.fields.filter(function(e) {
       return ("pole" !== active && "trf" !== active || "TRF_Name" !== e.k) && !(r.indexOf(e.k) >= 0)
     }),
@@ -2759,6 +2785,7 @@ $("#btn_save").onclick = function() {
               var m = nodeByNo(r.From_Pole);
               m && fix ? r.Span_Length_m = dist(m, fix).toFixed(2) : r.Span_Length_m || (r.Span_Length_m = "0")
             }
+            if (!preSaveChecks(r, u)) return;
             if ((CARRY[active] || []).forEach(function(e) {
                 void 0 !== r[e] && "" !== r[e] && (lastVals[active][e] = r[e])
               }), editingId) {
@@ -3088,10 +3115,6 @@ function qaCheck() {
     var t = e.props.Pole_in_list,
       o = normPoleNo(e.props.POLES);
     t && o && t !== o && n("polediff", QA_CHK, "Supply pole differs from the customer list (fine if the field is right)", e, ([e.props["FIRST NAME"], e.props["Second Name"]].filter(Boolean).join(" ") || "customer") + " · list " + t + " → field " + o)
-  }), Object.keys(i).forEach(function(e) {
-    i[e].length > 1 && i[e].forEach(function(t) {
-      n("dupid", QA_CHK, "Same national ID on two customers (two meters, or a typo)", t.c, t.nm + " · " + e)
-    })
   }), qaExtra(n), e.sort(function(e, t) {
     return e.sev === t.sev ? 0 : e.sev === QA_FIX ? -1 : 1
   });
@@ -3118,7 +3141,18 @@ var SPAN_MAX = {
 };
 
 function qaExtra(n) {
-  custs().forEach(function(e) {
+  poles().forEach(function(e) {
+    e.props.Conductor || n("nocond", QA_FIX, "Pole with no conductor", e, e.props.Pole_Numbe || "pole")
+  }), custs().forEach(function(e) {
+    e.props.Service_Cable || n("nosvc", QA_FIX, "Customer with no service cable type", e, custLabel(e) || "customer"), normMeter(e.props.Meter_number) || /no meter/i.test(e.props.Comment || "") || n("nometer", QA_CHK, "Customer with no meter number", e, custLabel(e) || "customer");
+    var r0 = poleByNo(e.props.POLES, custTrf(e));
+    if (r0) {
+      var d0 = dist(r0, e);
+      d0 > 50 && poles().some(function(t) {
+        return t !== r0 && recTrf(t) === recTrf(r0) && dist(t, e) < d0 - 25
+      }) && n("wrongpole", QA_FIX, "Customer probably on the wrong pole (another pole is much closer)", e, custLabel(e) + " · " + e.props.POLES + " at " + d0.toFixed(0) + " m")
+    }
+  }), custs().forEach(function(e) {
     var t = [e.props["FIRST NAME"], e.props["Second Name"]].filter(Boolean).join(" ") || e.props["HSE No."] || "customer",
       o = String(e.props.ID || "").replace(/\s/g, "");
     o && !/^\d{16}$/.test(o) && n("badid", QA_CHK, "National ID is not 16 digits", e, t + " · " + o + " (" + o.length + ")");
@@ -3148,6 +3182,75 @@ function qaGate(e) {
     behavior: "smooth",
     block: "center"
   }), !1
+}
+
+/* ---------- checks at save time: the error is stopped before it is recorded ---------- */
+function normMeter(e) {
+  return String(e || "").replace(/\s/g, "")
+}
+
+function meterOwner(e, t) {
+  var n = normMeter(e);
+  return n ? custs().filter(function(e) {
+    return e.id !== t && normMeter(e.props.Meter_number) === n
+  })[0] || null : null
+}
+
+function custLabel(e) {
+  return ((e.props["HSE No."] || "") + " " + [e.props["FIRST NAME"], e.props["Second Name"]].filter(Boolean).join(" ")).trim()
+}
+
+function focusField(e) {
+  var t = fld(e);
+  if (t) try {
+    t.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    }), t.focus()
+  } catch (e) {}
+}
+
+function preSaveChecks(e, t) {
+  if ("pole" === active && !e.Conductor) return toast("Conductor is required: choose the cable arriving at this pole"), focusField("Conductor"), !1;
+  if ("cust" !== active) return !0;
+  if (!e.Service_Cable) return toast("Service cable type is required"), focusField("Service_Cable"), !1;
+  var n = normMeter(e.Meter_number);
+  if (n) {
+    var o = meterOwner(n, editingId);
+    if (o) return alert("Meter " + n + " is already recorded on this phone:\ncustomer " + custLabel(o) + ", pole " + (o.props.POLES || "?") + ".\n\nA meter can belong to one customer only. Check the number, or open that customer in Records to correct it."), focusField("Meter_number"), !1
+  } else if (!/no meter/i.test(e.Comment || "")) {
+    if (!confirm("No meter number for this customer.\n\nOK = there is really no meter (\u201cNo meter\u201d is written in Comment)\nCancel = go back and type the meter number")) return focusField("Meter_number"), !1;
+    e.Comment = (e.Comment ? e.Comment + "; " : "") + "No meter"
+  }
+  var r = poleByNo(e.POLES),
+    a = editingId ? records.filter(function(e) {
+      return e.id === editingId
+    })[0] : null,
+    i = fix || a;
+  if (r && i) {
+    var s = dist(r, i);
+    if (s > 50) {
+      var l = recTrf(r),
+        c = null;
+      poles().forEach(function(e) {
+        if (e !== r && (!l || recTrf(e) === l)) {
+          var t = dist(e, i);
+          (!c || t < c.d) && (c = {
+            p: e,
+            d: t
+          })
+        }
+      });
+      var u = e.POLES + " is " + s.toFixed(0) + " m from this house (service cable over 50 m).";
+      if (c && c.d < s - 10 && confirm(u + "\nNearest pole: " + c.p.props.Pole_Numbe + " at " + c.d.toFixed(0) + " m.\n\nOK = connect to " + c.p.props.Pole_Numbe + "\nCancel = keep " + e.POLES)) {
+        e.POLES = c.p.props.Pole_Numbe;
+        var p = fld("POLES");
+        return p && (p.value = e.POLES), /^GPS/.test(e["Distance source"] || "") && (e["Horizontal distance of cable from pole to house"] = c.d.toFixed(2), e["REAL LENGTH OF SERVICE CABLE"] = (c.d + t).toFixed(2), e["Distance source"] = "GPS"), toast("Supply pole changed to " + e.POLES), !0
+      }
+      if (s > 150 && !confirm(u + "\nThis is very likely a wrong pole or a wrong position.\n\nOK = keep it anyway\nCancel = go back and correct")) return focusField("POLES"), !1
+    }
+  }
+  return !0
 }
 
 function renderQA() {

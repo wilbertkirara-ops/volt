@@ -41,6 +41,14 @@ Name | Code | Role (agent / supervisor) | Active (YES / NO) | Last seen | Name o
 - Until 26 Nov 2026 23:59 a phone without a code is still accepted, so the codes can be handed out. After that, no code = no sync.
 - Never write codes in app.js or Code.gs: the repository is public.
 
+## Checks when saving (since v16)
+- A meter number can belong to one customer only: saving a meter already recorded is refused, and tapping an
+  already-recorded customer in the list offers to open that point instead. (One person may own several meters.)
+- No meter number: the surveyor must confirm, and "No meter" is written in Comment.
+- Required: Conductor on every pole, Service cable type on every customer.
+- Service cable over 50 m: the app proposes the nearest pole; over 150 m it must be confirmed.
+- A red/amber badge in the header always shows the number of points to fix/check; tap it to see the list.
+
 ## Checks before export (since v9)
 Excel and ZIP exports first list the points to fix or check: missing photo/assembly, duplicate pole, house,
 meter or ID numbers, ID not 16 digits, phone not 07X XXX XXXX, service cable over 50 m, LV span over the limit of its conductor, GPS worse than ±10 m.
