@@ -471,7 +471,7 @@ var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-24-v12",
+  BUILD = "2026-11-24-v13",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
@@ -4532,7 +4532,13 @@ if (addEventListener("beforeinstallprompt", function(e) {
       e.update()
     } catch (e) {}
   }).catch(function() {}), navigator.serviceWorker.addEventListener("controllerchange", function() {
-    (updForce || hadCtl) && !reloaded && (updForce || !cap && !hasUnsaved()) && (reloaded = !0, location.reload())
+    if ((updForce || hadCtl) && !reloaded && (updForce || !updBlock() && !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || ""))) {
+      reloaded = !0;
+      try {
+        editingId || captureDraft()
+      } catch (e) {}
+      location.reload()
+    } else hadCtl && !reloaded && updMark(!0)
   }), setInterval(function() {
     navigator.onLine && swReg && swReg.update().catch(function() {})
   }, 18e5)
@@ -4540,13 +4546,23 @@ if (addEventListener("beforeinstallprompt", function(e) {
 var swReg = null,
   updForce = !1;
 
+/* what really cannot survive a restart: a GPS capture running, a point being edited, a new photo not saved yet.
+   The form of a new point is kept as a draft (captureDraft) and comes back after the restart. */
+function updBlock() {
+  return cap ? "Wait for the GPS capture to finish, then tap Update." : editingId ? "Press Update point (or cancel the edit) first, then tap Update." : photoChanged && photoBlob ? "Save the point with its new photo first, then tap Update." : ""
+}
+
 function updMark(e) {
   var t = $("#updBtn");
   t && (t.classList.toggle("new", !!e), t.innerHTML = e ? '⟳<span class="ul"> New</span>' : '⟳<span class="ul"> Update</span>')
 }
 async function appUpdate() {
   if (!navigator.onLine) return toast("No internet. Connect to the network, then tap Update.");
-  if (cap || "function" == typeof hasUnsaved && hasUnsaved()) return toast("Save or cancel the point you are editing first, then tap Update.");
+  var b = updBlock();
+  if (b) return toast(b);
+  try {
+    captureDraft()
+  } catch (e) {}
   if (!("serviceWorker" in navigator) || !swReg) return toast("Updating…"), void setTimeout(function() {
     location.reload()
   }, 600);
