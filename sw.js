@@ -1,5 +1,5 @@
 // Voltline (Kirehe & Ngoma) — offline app shell. Bump CACHE on every release.
-var CACHE='voltline-v24';
+var CACHE='voltline-v25';
 var ASSETS=['./','./index.html','./app.js','./tracker.html','./manifest.webmanifest',
   './voltline-transformers.js','./voltline-villages.js','./voltline-customers.js',
   './exceljs.min.js','./jszip.min.js','./zxing.min.js','./voltline-template.xlsx',
@@ -11,7 +11,13 @@ var FRESH=/(\/|\.html|app\.js|voltline-[a-z]+\.js|manifest\.webmanifest)$/;
 self.addEventListener('install',function(e){
   // cache:'reload' bypasses the browser HTTP cache, so a new version never installs old files
   e.waitUntil(caches.open(CACHE).then(function(c){
-    return Promise.all(ASSETS.map(function(u){ return fetch(new Request(u,{cache:'reload'})).then(function(r){ if(r.ok) return c.put(u,r); }); }));
+    // the app itself first (small, must succeed); the big libraries and lists may arrive later:
+    // on a weak network a single failed download must not block the update
+    var CORE=['./','./index.html','./app.js'];
+    function get(u){ return fetch(new Request(u,{cache:'reload'})).then(function(r){ if(r.ok) return c.put(u,r); throw new Error(u); }); }
+    return Promise.all(CORE.map(get)).then(function(){
+      return Promise.all(ASSETS.filter(function(u){return CORE.indexOf(u)<0;}).map(function(u){ return get(u).catch(function(){}); }));
+    });
   }).then(function(){return self.skipWaiting();}));
 });
 self.addEventListener('activate',function(e){

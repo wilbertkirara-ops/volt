@@ -54,6 +54,8 @@ function doPost(e) {
       return out(d.action === 'migrate' ? migrate(d) : pull());
     }
   } catch (err) { return out({ ok: false, error: String(err) }); }
+  // phones on an app older than v14 (no build sent) are asked to update; their points stay on the phone
+  if (!d.build) return out({ ok: false, error: 'OLD APP VERSION: open wilbertkirara-ops.github.io/volt/repair.html in the browser that installed Voltline. Your points stay on the phone.' });
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
