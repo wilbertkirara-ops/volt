@@ -471,7 +471,7 @@ var roster = [],
   selectedCust = null,
   pendingPole = "",
   KEY = "wkasbuilt.v3",
-  BUILD = "2026-11-23-v9",
+  BUILD = "2026-11-24-v10",
   APP_NAME = "Voltline",
   PROJECT_TITLE = "Rwanda Universal Electricity Access Program (RUEAP) Lot 2 — LV network as-built, Kirehe and Ngoma districts";
 
